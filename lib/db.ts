@@ -62,8 +62,9 @@ export async function checkDatabaseConnection(): Promise<{ online: boolean; mess
     // Run migrations to ensure columns exist on existing databases
     try {
       await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS market_analysis TEXT');
+      await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login TIMESTAMP');
     } catch (migError) {
-      console.error('Migration error on users (market_analysis):', migError);
+      // console.error('Migration error on users columns:', migError);
     }
 
     // Verify milestones table exists
@@ -104,11 +105,30 @@ export async function checkDatabaseConnection(): Promise<{ online: boolean; mess
       `);
     }
 
-    // Run migrations for profile_versions
+    // Verify job_applications table exists
+    try {
+      await client.query('SELECT 1 FROM job_applications LIMIT 1');
+    } catch (tblError) {
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS job_applications (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          job_id VARCHAR(255) NOT NULL,
+          status VARCHAR(50) NOT NULL DEFAULT 'applied',
+          applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE(user_id, job_id)
+        )
+      `);
+    }
+
+    // Run migrations for profile_versions and users to store PDF content
     try {
       await client.query('ALTER TABLE profile_versions ADD COLUMN IF NOT EXISTS market_analysis TEXT');
+      await client.query('ALTER TABLE profile_versions ADD COLUMN IF NOT EXISTS pdf_data TEXT');
+      await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS pdf_data TEXT');
+      await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_picture TEXT');
     } catch (migError) {
-      console.error('Migration error on profile_versions (market_analysis):', migError);
+      // console.error('Migration error on profile_versions/users (pdf_data/profile_picture):', migError);
     }
     client.release();
     return { online: true, message: 'Successfully connected to VPS PostgreSQL instance.' };

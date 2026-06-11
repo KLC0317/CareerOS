@@ -18,7 +18,7 @@ export async function GET(req: Request) {
     // Retrieve all historical versions for this user
     let versionsRes = await query(
       `SELECT pv.id, pv.version_number AS "versionNumber", pv.resume_filename AS "resumeFilename", 
-              pv.target_role AS "targetRole", pv.milestones, pv.market_analysis AS "marketAnalysis", pv.created_at AS "createdAt"
+              pv.target_role AS "targetRole", pv.milestones, pv.market_analysis AS "marketAnalysis", pv.pdf_data AS "pdfData", pv.created_at AS "createdAt"
        FROM profile_versions pv
        JOIN users u ON u.id = pv.user_id
        WHERE u.email = $1
@@ -77,7 +77,7 @@ export async function GET(req: Request) {
             // Re-fetch versions
             versionsRes = await query(
               `SELECT pv.id, pv.version_number AS "versionNumber", pv.resume_filename AS "resumeFilename", 
-                      pv.target_role AS "targetRole", pv.milestones, pv.market_analysis AS "marketAnalysis", pv.created_at AS "createdAt"
+                      pv.target_role AS "targetRole", pv.milestones, pv.market_analysis AS "marketAnalysis", pv.pdf_data AS "pdfData", pv.created_at AS "createdAt"
                FROM profile_versions pv
                JOIN users u ON u.id = pv.user_id
                WHERE u.email = $1
@@ -95,17 +95,18 @@ export async function GET(req: Request) {
     });
 
   } catch (error: any) {
-    console.error('Fetch Profile Versions Error:', error);
+    // console.error('Fetch Profile Versions Error:', error);
     return NextResponse.json({ error: 'SERVER_ERROR', message: error.message }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const { email, versionId } = await req.json();
+    const body = await req.json();
+    const { email, versionId, action = 'restore', targetRole, milestones, resumeFilename, marketAnalysis, pdfData } = body;
 
-    if (!email || !versionId) {
-      return NextResponse.json({ error: 'BAD_REQUEST', message: 'Email and versionId are required.' }, { status: 400 });
+    if (!email) {
+      return NextResponse.json({ error: 'BAD_REQUEST', message: 'Email parameter is required.' }, { status: 400 });
     }
 
     const dbStatus = await checkDatabaseConnection();
@@ -113,9 +114,136 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'POSTGRESQL_OFFLINE', message: dbStatus.message }, { status: 503 });
     }
 
+    if (action === 'save') {
+      if (!targetRole || !Array.isArray(milestones)) {
+        return NextResponse.json({ error: 'BAD_REQUEST', message: 'targetRole and milestones array are required to save.' }, { status: 400 });
+      }
+
+      // Find the user ID
+      const findUser = await query('SELECT id FROM users WHERE email = $1', [email.toLowerCase()]);
+      if (findUser.rows.length === 0) {
+        return NextResponse.json({ error: 'USER_NOT_FOUND', message: 'User account not found.' }, { status: 404 });
+      }
+      const userId = findUser.rows[0].id;
+
+      // Record Profile Version History
+      const versionRes = await query(
+        'SELECT COALESCE(MAX(version_number), 0) + 1 AS next_version FROM profile_versions WHERE user_id = $1',
+        [userId]
+      );
+      const nextVersion = versionRes.rows[0].next_version;
+
+      const marketAnalysisStr = marketAnalysis ? (typeof marketAnalysis === 'object' ? JSON.stringify(marketAnalysis) : marketAnalysis) : null;
+
+      await query(
+        `INSERT INTO profile_versions (user_id, version_number, resume_filename, target_role, milestones, market_analysis, pdf_data)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [
+          userId,
+          nextVersion,
+          resumeFilename || `Tailored for ${targetRole}`,
+          targetRole,
+          JSON.stringify(milestones),
+          marketAnalysisStr,
+          pdfData || null
+        ]
+      );
+
+      // 1. Update active user profile target_role, market_analysis, and pdf_data
+      await query(
+        'UPDATE users SET target_role = $1, market_analysis = $2, pdf_data = $4 WHERE id = $3', 
+        [targetRole, marketAnalysisStr, userId, pdfData || null]
+      );
+
+      // 2. Delete current active milestones
+      await query('DELETE FROM milestones WHERE user_id = $1', [userId]);
+
+      // 3. Re-insert milestones from the tailored version
+      for (const node of milestones) {
+        await query(
+          `INSERT INTO milestones (user_id, role, organization, type, start_date, end_date, description, skills) 
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          [
+            userId,
+            node.role,
+            node.organization,
+            node.type,
+            node.startDate,
+            node.endDate,
+            node.description || '',
+            JSON.stringify(node.skills || [])
+          ]
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: `Saved`,
+        versionNumber: nextVersion
+      });
+    }
+
+    if (action === 'save_active_milestones') {
+      if (!Array.isArray(milestones)) {
+        return NextResponse.json({ error: 'BAD_REQUEST', message: 'milestones array is required to sync.' }, { status: 400 });
+      }
+
+      // Find the user ID
+      const findUser = await query('SELECT id, market_analysis FROM users WHERE email = $1', [email.toLowerCase()]);
+      if (findUser.rows.length === 0) {
+        return NextResponse.json({ error: 'USER_NOT_FOUND', message: 'User account not found.' }, { status: 404 });
+      }
+      const user = findUser.rows[0];
+      const userId = user.id;
+
+      // Delete existing milestones
+      await query('DELETE FROM milestones WHERE user_id = $1', [userId]);
+
+      // Re-insert milestones
+      for (const node of milestones) {
+        await query(
+          `INSERT INTO milestones (user_id, role, organization, type, start_date, end_date, description, skills) 
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          [
+            userId,
+            node.role,
+            node.organization,
+            node.type,
+            node.startDate,
+            node.endDate,
+            node.description || '',
+            JSON.stringify(node.skills || [])
+          ]
+        );
+      }
+
+      // Clear the tailored summary from users table market_analysis JSON block
+      let marketAnalysisObj: any = {};
+      if (user.market_analysis) {
+        try {
+          marketAnalysisObj = JSON.parse(user.market_analysis);
+        } catch (e) {}
+      }
+      const updatedMarketAnalysis = JSON.stringify({
+        ...marketAnalysisObj,
+        summary: ''
+      });
+      await query('UPDATE users SET market_analysis = $1 WHERE id = $2', [updatedMarketAnalysis, userId]);
+
+      return NextResponse.json({
+        success: true,
+        message: 'Saved'
+      });
+    }
+
+    // Default action: restore
+    if (!versionId) {
+      return NextResponse.json({ error: 'BAD_REQUEST', message: 'versionId is required to restore.' }, { status: 400 });
+    }
+
     // Retrieve the target profile version
     const findVersion = await query(
-      `SELECT pv.target_role, pv.milestones, pv.market_analysis, u.id AS user_id 
+      `SELECT pv.target_role, pv.milestones, pv.market_analysis, pv.pdf_data, u.id AS user_id 
        FROM profile_versions pv
        JOIN users u ON u.id = pv.user_id
        WHERE pv.id = $1 AND u.email = $2`,
@@ -126,21 +254,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'VERSION_NOT_FOUND', message: 'Profile version record not found.' }, { status: 404 });
     }
 
-    const { target_role: targetRole, milestones, market_analysis: marketAnalysis, user_id: userId } = findVersion.rows[0];
+    const { target_role: targetRoleVal, milestones: milestonesVal, market_analysis: marketAnalysisVal, pdf_data: pdfDataVal, user_id: userIdVal } = findVersion.rows[0];
 
-    // 1. Update target_role and market_analysis on user profile
-    await query('UPDATE users SET target_role = $1, market_analysis = $2 WHERE id = $3', [targetRole, marketAnalysis, userId]);
+    // 1. Update target_role, market_analysis, and pdf_data on user profile
+    await query('UPDATE users SET target_role = $1, market_analysis = $2, pdf_data = $4 WHERE id = $3', [targetRoleVal, marketAnalysisVal, userIdVal, pdfDataVal || null]);
 
     // 2. Delete current active milestones
-    await query('DELETE FROM milestones WHERE user_id = $1', [userId]);
+    await query('DELETE FROM milestones WHERE user_id = $1', [userIdVal]);
 
     // 3. Re-insert milestones from version
-    for (const node of milestones) {
+    for (const node of milestonesVal) {
       await query(
         `INSERT INTO milestones (user_id, role, organization, type, start_date, end_date, description, skills) 
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
         [
-          userId,
+          userIdVal,
           node.role,
           node.organization,
           node.type,
@@ -155,13 +283,14 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       message: `Profile successfully rolled back to target version.`,
-      targetRole,
-      marketAnalysis,
-      milestones
+      targetRole: targetRoleVal,
+      marketAnalysis: marketAnalysisVal,
+      milestones: milestonesVal,
+      pdfData: pdfDataVal
     });
 
   } catch (error: any) {
-    console.error('Restore Profile Version Error:', error);
+    // console.error('Restore/Save Profile Version Error:', error);
     return NextResponse.json({ error: 'SERVER_ERROR', message: error.message }, { status: 500 });
   }
 }

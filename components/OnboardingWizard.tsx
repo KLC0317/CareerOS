@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 import { Button } from './ui/Button';
 import { 
   FileText, Shield, ArrowRight, Cpu, 
-  Upload, Terminal, Check, Award, Plus, Trash, Globe, AlertCircle
+  Upload, Terminal, Check, Award, Plus, Trash, Globe, AlertCircle, Clock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -23,6 +23,7 @@ export default function OnboardingWizard() {
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [resumeFilename, setResumeFilename] = useState<string>('Manual Entry');
   const [hasApiKeyWarning, setHasApiKeyWarning] = useState<boolean>(false);
+  const [pdfDataUrl, setPdfDataUrl] = useState<string | null>(null);
 
   // Onboarding Form State
   const [milestones, setMilestones] = useState<CareerNode[]>([]);
@@ -99,9 +100,9 @@ export default function OnboardingWizard() {
 
       } else {
         if (result.code === 'GEMINI_API_KEY_MISSING') {
-          console.warn('Gemini API key is not configured. Falling back to local parser.');
+          // console.warn('Gemini API key is not configured. Falling back to local parser.');
           
-          const localAnalysis = analyzeResumeText(resumeText || 'University of Malaya, Grab, Petronas, PyTorch, React');
+          const localAnalysis = analyzeResumeText(resumeText || (uploadFile ? uploadFile.name : ''));
           
           const fallbackLogs = [
             ...logs,
@@ -165,11 +166,33 @@ export default function OnboardingWizard() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setUploadFile(file);
     setResumeFilename(file.name);
-    setIsScanning(true);
-    setScanProgress(0);
-    setScanLogs([`[OCR] Uploading file: ${file.name} (${(file.size / 1024).toFixed(1)} KB)...`]);
+    
+    // Read file as base64 data URL
+    const base64Reader = new FileReader();
+    base64Reader.onload = () => {
+      setPdfDataUrl(base64Reader.result as string);
+    };
+    base64Reader.readAsDataURL(file);
+
+    if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+      const textReader = new FileReader();
+      textReader.onload = () => {
+        const text = textReader.result as string;
+        setResumeText(text);
+        setUploadFile(file);
+        setIsScanning(true);
+        setScanProgress(0);
+        setScanLogs([`[OCR] Uploading file: ${file.name} (${(file.size / 1024).toFixed(1)} KB)...`]);
+      };
+      textReader.readAsText(file);
+    } else {
+      setUploadFile(file);
+      setResumeText('');
+      setIsScanning(true);
+      setScanProgress(0);
+      setScanLogs([`[OCR] Uploading file: ${file.name} (${(file.size / 1024).toFixed(1)} KB)...`]);
+    }
   };
 
   const handleSkipScan = () => {
@@ -232,7 +255,8 @@ export default function OnboardingWizard() {
       targetRole, 
       milestones, 
       resumeFilename, 
-      marketAnalysis ? JSON.stringify(marketAnalysis) : undefined
+      marketAnalysis ? JSON.stringify(marketAnalysis) : undefined,
+      pdfDataUrl || undefined
     );
     if (!result.success) {
       setErrorMsg(result.error || 'Failed to persist onboarding milestones.');
@@ -782,8 +806,17 @@ export default function OnboardingWizard() {
 
       {/* Security note */}
       <div className="flex items-center gap-1.5 justify-center text-[10px] text-slate-400 font-mono">
-        <Shield className="h-3.5 w-3.5 text-teal-500" />
-        <span>SSL Secured • Milestones are parsed locally & parsed data stores in Postgres SQL</span>
+        {userProfile?.lastLogin ? (
+          <>
+            <Clock className="h-3.5 w-3.5 text-teal-500" />
+            <span>Last Login: {new Date(userProfile.lastLogin).toLocaleString()}</span>
+          </>
+        ) : (
+          <>
+            <Shield className="h-3.5 w-3.5 text-teal-500" />
+            <span>Milestones are verified and stored securely in snapshot history</span>
+          </>
+        )}
       </div>
     </div>
   );

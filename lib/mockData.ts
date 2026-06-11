@@ -108,7 +108,7 @@ export const INITIAL_CAREER_NODES: CareerNode[] = [
   }
 ];
 
-// 5 Representative Job Postings at Southeast Asian Regional Companies
+// 20 Representative Job Postings at Southeast Asian Regional Companies
 export const MOCK_JOBS: JobPosting[] = [
   {
     id: 'job-1',
@@ -118,7 +118,11 @@ export const MOCK_JOBS: JobPosting[] = [
     salary: 'RM 15,000 - RM 22,000 / mo',
     requiredSkills: ['AI Architect', 'Deep Learning', 'System Architecture', 'PyTorch', 'Distributed Systems', 'Cloud Computing'],
     baseTransitionRate: 0.04,
-    description: 'Lead the architectural design of Petronas core AI pipelines. Responsible for large-scale distributed training on cloud infrastructure and optimizing deep learning inference deployment.'
+    description: 'Lead the architectural design of Petronas core AI pipelines. Responsible for large-scale distributed training on cloud infrastructure and optimizing deep learning inference deployment.',
+    jobType: 'Full-time',
+    experienceLevel: 'Lead',
+    workMode: 'On-site',
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
     id: 'job-2',
@@ -128,7 +132,11 @@ export const MOCK_JOBS: JobPosting[] = [
     salary: 'S$ 8,000 - S$ 12,000 / mo',
     requiredSkills: ['Frontend Architect', 'Advanced React', 'Performance Tuning', 'State Management', 'Browser Engines', 'Web Performance', 'TypeScript'],
     baseTransitionRate: 0.05,
-    description: 'Own the web performance metrics and client-side architecture of Grab Transport products. Define global state guidelines, bundle optimization steps, and lead junior engineering squads.'
+    description: 'Own the web performance metrics and client-side architecture of Grab Transport products. Define global state guidelines, bundle optimization steps, and lead junior engineering squads.',
+    jobType: 'Full-time',
+    experienceLevel: 'Lead',
+    workMode: 'Hybrid',
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
     id: 'job-3',
@@ -138,7 +146,11 @@ export const MOCK_JOBS: JobPosting[] = [
     salary: 'RM 20,000 - RM 28,000 / mo',
     requiredSkills: ['Engineering Director', 'Technical Leadership', 'Product Strategy', 'Agile Delivery', 'System Design', 'Market Analysis', 'Communication'],
     baseTransitionRate: 0.03,
-    description: 'Steer the engineering team in developing modern smart-city IoT solutions. Collaborate with product strategy stakeholders and shape technical delivery milestones across multiple business units.'
+    description: 'Steer the engineering team in developing modern smart-city IoT solutions. Collaborate with product strategy stakeholders and shape technical delivery milestones across multiple business units.',
+    jobType: 'Full-time',
+    experienceLevel: 'Executive',
+    workMode: 'On-site',
+    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
     id: 'job-4',
@@ -148,7 +160,11 @@ export const MOCK_JOBS: JobPosting[] = [
     salary: 'RM 12,000 - RM 17,000 / mo',
     requiredSkills: ['Deep Learning', 'PyTorch', 'Linear Algebra', 'Python', 'Linux'],
     baseTransitionRate: 0.045,
-    description: 'Design and deploy production-grade computer vision models for national smart monitoring initiatives. Involves PyTorch modeling, dataset curation, and edge hardware deployment.'
+    description: 'Design and deploy production-grade computer vision models for national smart monitoring initiatives. Involves PyTorch modeling, dataset curation, and edge hardware deployment.',
+    jobType: 'Full-time',
+    experienceLevel: 'Senior',
+    workMode: 'Hybrid',
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
     id: 'job-5',
@@ -158,7 +174,221 @@ export const MOCK_JOBS: JobPosting[] = [
     salary: 'RM 9,000 - RM 14,000 / mo',
     requiredSkills: ['Advanced React', 'State Management', 'TypeScript', 'JavaScript', 'HTML/CSS'],
     baseTransitionRate: 0.055,
-    description: 'Build fast, high-conversion web portals for automotive e-commerce. Work closely with UI designers and optimize state management performance.'
+    description: 'Build fast, high-conversion web portals for automotive e-commerce. Work closely with UI designers and optimize state management performance.',
+    jobType: 'Full-time',
+    experienceLevel: 'Senior',
+    workMode: 'Remote',
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'job-6',
+    role: 'Senior Data Engineer',
+    company: 'Axiata Digital',
+    location: 'Kuala Lumpur, Malaysia',
+    salary: 'RM 11,000 - RM 16,000 / mo',
+    requiredSkills: ['Distributed Systems', 'Python', 'Linux', 'Cloud Computing'],
+    baseTransitionRate: 0.05,
+    description: 'Build and scale telemetry pipelines using Python and Apache Spark. Support distributed systems deployment in AWS and troubleshoot Linux-based cluster instances.',
+    jobType: 'Full-time',
+    experienceLevel: 'Senior',
+    workMode: 'On-site',
+    createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'job-7',
+    role: 'Cloud Infrastructure Architect',
+    company: 'TM ONE',
+    location: 'Cyberjaya, Selangor',
+    salary: 'RM 14,000 - RM 20,000 / mo',
+    requiredSkills: ['Cloud Computing', 'System Architecture', 'Linux', 'Computer Networking', 'Distributed Systems'],
+    baseTransitionRate: 0.04,
+    description: 'Architect high-availability cloud platforms for corporate clients. Responsible for virtual networks, security group configurations on Linux, and distributed storage infrastructure.',
+    jobType: 'Full-time',
+    experienceLevel: 'Lead',
+    workMode: 'Hybrid',
+    createdAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'job-8',
+    role: 'Full-Stack Developer',
+    company: 'Shopee',
+    location: 'Singapore (Hybrid)',
+    salary: 'S$ 6,500 - S$ 9,500 / mo',
+    requiredSkills: ['Advanced React', 'TypeScript', 'State Management', 'JavaScript', 'HTML/CSS'],
+    baseTransitionRate: 0.055,
+    description: 'Develop customer-facing features using modern React components. Build optimized local state structures, coordinate with UI/UX teams, and ensure type safety using TypeScript.',
+    jobType: 'Full-time',
+    experienceLevel: 'Mid',
+    workMode: 'Hybrid',
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'job-9',
+    role: 'Product Manager - Tech',
+    company: 'AirAsia Tech',
+    location: 'Sepang, Selangor',
+    salary: 'RM 12,000 - RM 18,000 / mo',
+    requiredSkills: ['Product Strategy', 'Market Analysis', 'Agile Delivery', 'Communication'],
+    baseTransitionRate: 0.045,
+    description: 'Define features and product strategy for the SuperApp travel bundle. Guide agile development sprints, conduct regional market research, and communicate technical milestones.',
+    jobType: 'Full-time',
+    experienceLevel: 'Mid',
+    workMode: 'On-site',
+    createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'job-10',
+    role: 'Head of Mobile Engineering',
+    company: 'CelcomDigi',
+    location: 'Subang Jaya, Selangor',
+    salary: 'RM 18,000 - RM 25,000 / mo',
+    requiredSkills: ['Technical Leadership', 'Agile Delivery', 'Communication', 'Software Engineering', 'System Design'],
+    baseTransitionRate: 0.035,
+    description: 'Direct development of unified self-service mobile applications. Mentor junior leads, establish agile practices, and champion software engineering design guidelines.',
+    jobType: 'Full-time',
+    experienceLevel: 'Executive',
+    workMode: 'On-site',
+    createdAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'job-11',
+    role: 'Lead Frontend Engineer',
+    company: 'Lazada Group',
+    location: 'Kuala Lumpur, Malaysia',
+    salary: 'RM 13,000 - RM 18,500 / mo',
+    requiredSkills: ['Frontend Architect', 'Advanced React', 'Performance Tuning', 'State Management', 'Web Performance', 'TypeScript'],
+    baseTransitionRate: 0.05,
+    description: 'Lead frontend engineering teams working on e-commerce merchant portals. Drive React application design, performance tuning for slow mobile connections, and custom web performance architectures.',
+    jobType: 'Full-time',
+    experienceLevel: 'Lead',
+    workMode: 'Hybrid',
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'job-12',
+    role: 'DevOps / Site Reliability Lead',
+    company: 'Maxis Berhad',
+    location: 'KLCC, Kuala Lumpur',
+    salary: 'RM 12,500 - RM 17,500 / mo',
+    requiredSkills: ['System Architecture', 'Cloud Computing', 'Linux', 'Computer Networking', 'Distributed Systems'],
+    baseTransitionRate: 0.045,
+    description: 'Manage CI/CD release architectures for core telecom apps. Maintain container orchestrators on cloud-native networks and optimize Linux server configurations.',
+    jobType: 'Full-time',
+    experienceLevel: 'Lead',
+    workMode: 'On-site',
+    createdAt: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'job-13',
+    role: 'Senior Machine Learning Specialist',
+    company: 'Maybank Tech',
+    location: 'Kuala Lumpur, Malaysia',
+    salary: 'RM 13,500 - RM 19,000 / mo',
+    requiredSkills: ['Deep Learning', 'PyTorch', 'Python', 'Linear Algebra'],
+    baseTransitionRate: 0.042,
+    description: 'Design risk credit rating models and fraud detection architectures using PyTorch and traditional Deep Learning pipelines. Requires solid linear algebra foundations.',
+    jobType: 'Full-time',
+    experienceLevel: 'Senior',
+    workMode: 'Hybrid',
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'job-14',
+    role: 'Web Performance Architect',
+    company: 'Boost FinTech',
+    location: 'Bangsar South, KL',
+    salary: 'RM 11,500 - RM 16,000 / mo',
+    requiredSkills: ['Performance Tuning', 'Web Performance', 'Browser Engines', 'HTML/CSS', 'JavaScript'],
+    baseTransitionRate: 0.052,
+    description: 'Analyze and optimize render pipelines for e-wallet applications. Run deep audits on browser engines, tune resource delivery speeds, and refactor CSS/HTML layouts.',
+    jobType: 'Contract',
+    experienceLevel: 'Senior',
+    workMode: 'Remote',
+    createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'job-15',
+    role: 'Agile Delivery Manager',
+    company: 'Touch n Go Digital',
+    location: 'Bangsar South, KL',
+    salary: 'RM 10,000 - RM 15,500 / mo',
+    requiredSkills: ['Agile Delivery', 'Communication', 'Technical Leadership', 'Software Engineering'],
+    baseTransitionRate: 0.048,
+    description: 'Facilitate agile delivery across payment gateway squads. Maintain delivery velocity metrics, clarify blockers, and communicate project status to corporate stakeholders.',
+    jobType: 'Full-time',
+    experienceLevel: 'Mid',
+    workMode: 'Hybrid',
+    createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'job-16',
+    role: 'Lead Solutions Architect',
+    company: 'CIMB Digital',
+    location: 'Kuala Lumpur (Hybrid)',
+    salary: 'RM 16,000 - RM 23,000 / mo',
+    requiredSkills: ['System Architecture', 'System Design', 'Cloud Computing', 'Distributed Systems', 'Software Engineering'],
+    baseTransitionRate: 0.038,
+    description: 'Architect transactional core banking modules on microservices infrastructure. Formulate system design standards, consult on cloud migration pipelines, and lead system audit trials.',
+    jobType: 'Full-time',
+    experienceLevel: 'Lead',
+    workMode: 'Hybrid',
+    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'job-17',
+    role: 'Senior React Engineer',
+    company: 'Zalora Tech',
+    location: 'Singapore / Remote',
+    salary: 'S$ 7,500 - S$ 11,000 / mo',
+    requiredSkills: ['Advanced React', 'State Management', 'TypeScript', 'JavaScript', 'HTML/CSS'],
+    baseTransitionRate: 0.054,
+    description: 'Build features for catalog filtering and checkout flows. Refactor React contexts, ensure fast re-renders, and write TypeScript interfaces.',
+    jobType: 'Full-time',
+    experienceLevel: 'Senior',
+    workMode: 'Remote',
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'job-18',
+    role: 'Technical Lead',
+    company: 'Fave Group',
+    location: 'Kuala Lumpur, Malaysia',
+    salary: 'RM 12,000 - RM 16,500 / mo',
+    requiredSkills: ['Technical Leadership', 'System Design', 'Software Engineering', 'Communication'],
+    baseTransitionRate: 0.046,
+    description: 'Guide the engineering squad working on merchant integrations. Review software architecture diagrams, establish code quality guidelines, and coordinate release plans.',
+    jobType: 'Full-time',
+    experienceLevel: 'Lead',
+    workMode: 'On-site',
+    createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'job-19',
+    role: 'AI Systems Engineer',
+    company: 'Asean AI Labs',
+    location: 'Cyberjaya, Selangor',
+    salary: 'RM 11,500 - RM 17,000 / mo',
+    requiredSkills: ['Deep Learning', 'PyTorch', 'Distributed Systems', 'Python', 'Linux'],
+    baseTransitionRate: 0.045,
+    description: 'Configure clusters for deep learning model training. Optimize PyTorch data loaders, orchestrate tasks on Linux machines, and maintain model registry databases.',
+    jobType: 'Internship',
+    experienceLevel: 'Entry',
+    workMode: 'Hybrid',
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'job-20',
+    role: 'Product & Tech Lead',
+    company: 'Kargo Technologies',
+    location: 'Jakarta / KL (Hybrid)',
+    salary: 'RM 14,000 - RM 19,500 / mo',
+    requiredSkills: ['Product Strategy', 'System Design', 'Agile Delivery', 'Communication'],
+    baseTransitionRate: 0.04,
+    description: 'Steer the product and engineering roadmap for regional logistics solutions. Define technical milestones, design transactional architectures, and deliver software updates via agile sprints.',
+    jobType: 'Full-time',
+    experienceLevel: 'Lead',
+    workMode: 'Hybrid',
+    createdAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString()
   }
 ];
 
@@ -476,6 +706,10 @@ function generateJobOpenings(count: number): JobPosting[] {
   const rng = mulberry32(137);
   const jobs: JobPosting[] = [];
 
+  const jobTypes: ('Full-time' | 'Part-time' | 'Contract' | 'Internship')[] = ['Full-time', 'Part-time', 'Contract', 'Internship'];
+  const expLevels: ('Entry' | 'Mid' | 'Senior' | 'Lead' | 'Executive')[] = ['Entry', 'Mid', 'Senior', 'Lead', 'Executive'];
+  const workModes: ('On-site' | 'Hybrid' | 'Remote')[] = ['On-site', 'Hybrid', 'Remote'];
+
   for (let i = 0; i < count; i++) {
     const template = seededPick(JOB_ROLE_TEMPLATES, rng);
     const location = seededPick(JOB_LOCATIONS, rng);
@@ -493,6 +727,15 @@ function generateJobOpenings(count: number): JobPosting[] {
     else if (rng() < 0.1) role = 'Lead ' + role;
     else if (rng() < 0.08) role = 'Principal ' + role;
 
+    const jobType = seededPick(jobTypes, rng);
+    const experienceLevel = seededPick(expLevels, rng);
+    const workMode = seededPick(workModes, rng);
+
+    const daysAgo = Math.floor(rng() * 30);
+    const date = new Date(2026, 5, 11);
+    date.setDate(date.getDate() - daysAgo);
+    const createdAt = date.toISOString();
+
     jobs.push({
       id: `job-gen-${String(i + 1).padStart(4, '0')}`,
       role,
@@ -501,7 +744,11 @@ function generateJobOpenings(count: number): JobPosting[] {
       salary,
       requiredSkills,
       baseTransitionRate: 0.02 + rng() * 0.06,
-      description: seededPick(JOB_DESCRIPTIONS, rng)
+      description: seededPick(JOB_DESCRIPTIONS, rng),
+      jobType,
+      experienceLevel,
+      workMode,
+      createdAt
     });
   }
 

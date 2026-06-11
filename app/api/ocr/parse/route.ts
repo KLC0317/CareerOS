@@ -56,6 +56,9 @@ Analyze the provided resume and perform the following tasks:
 3. Compile a list of all detected skills matching the allowed skills dictionary.
 4. Extract the candidate's geographical location (or infer it from listed entities like companies and universities if not explicitly stated) and analyze the local technology market demand for the recommended roles in that geographical area.
 
+CRITICAL DIRECTIVE FOR INTEGRITY & HONESTY:
+You MUST ONLY extract what is explicitly present in the resume. You must never assume the user has skills, experience, or tools that are not directly mentioned in their resume text. For example, if the resume does not say "Next.js" or "NextJS", you can never assume or list that the user knows Next.js. You must maintain 100% honesty and integrity, extracting the exact words, milestones, roles, and organizations as they are written in the resume. Do not fabricate, summarize out of context, or add any achievements or technologies.
+
 You MUST return a valid JSON object conforming exactly to this TypeScript schema:
 {
   "recommendedRole": "string (the primary/highest-match recommended career role/trajectory)",
@@ -66,6 +69,7 @@ You MUST return a valid JSON object conforming exactly to this TypeScript schema
     }
   ],
   "detectedSkills": string[],
+  "summary": "string (original professional summary of the candidate if present in the resume, otherwise a synthesized summary of their overall profile)",
   "marketAnalysis": {
     "geo": "Detected city/country or inferred region",
     "marketDemand": "Regional demand analysis, local market outlook, growth prospects, and tech hubs in that area for the primary recommended role",
@@ -134,7 +138,7 @@ Do not include any Markdown wrap blocks like \`\`\`json. Return only the raw JSO
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('Gemini API Error:', errorData);
+      // console.error('Gemini API Error:', errorData);
       return NextResponse.json({
         success: false,
         error: 'GEMINI_API_ERROR',
@@ -169,7 +173,7 @@ Do not include any Markdown wrap blocks like \`\`\`json. Return only the raw JSO
         data: parsedJSON
       });
     } catch (parseErr: any) {
-      console.error('Failed to parse Gemini JSON output:', resultText);
+      // console.error('Failed to parse Gemini JSON output:', resultText);
       return NextResponse.json({
         success: false,
         error: 'JSON_PARSE_ERROR',
@@ -178,7 +182,7 @@ Do not include any Markdown wrap blocks like \`\`\`json. Return only the raw JSO
     }
 
   } catch (error: any) {
-    console.error('OCR Parser Endpoint Error:', error);
+    // console.error('OCR Parser Endpoint Error:', error);
     return NextResponse.json({
       success: false,
       error: 'SERVER_ERROR',

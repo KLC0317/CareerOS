@@ -34,6 +34,7 @@ export async function POST(req: Request) {
     );
 
     // Simulated email service output
+    /*
     console.log(`
       ======================================================
       SIMULATED EMAIL SERVICE: PASSWORD RESET REQUEST
@@ -42,6 +43,7 @@ export async function POST(req: Request) {
       Link: http://localhost:3000/?reset-token=${token}
       ======================================================
     `);
+    */
 
     return NextResponse.json({
       success: true,
@@ -50,7 +52,7 @@ export async function POST(req: Request) {
     });
 
   } catch (error: any) {
-    console.error('Forgot Password API Error:', error);
+    // console.error('Forgot Password API Error:', error);
     return NextResponse.json({ error: 'SERVER_ERROR', message: error.message }, { status: 500 });
   }
 }

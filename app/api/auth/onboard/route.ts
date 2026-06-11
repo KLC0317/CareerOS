@@ -3,7 +3,7 @@ import { query, checkDatabaseConnection } from '@/lib/db';
 
 export async function POST(req: Request) {
   try {
-    const { email, targetRole, milestones, resumeFilename, marketAnalysis } = await req.json();
+    const { email, targetRole, milestones, resumeFilename, marketAnalysis, pdfData } = await req.json();
 
     if (!email || !targetRole || !Array.isArray(milestones)) {
       return NextResponse.json({ error: 'BAD_REQUEST', message: 'Email, targetRole, and milestones are required.' }, { status: 400 });
@@ -23,12 +23,15 @@ export async function POST(req: Request) {
 
     const userId = findUser.rows[0].id;
 
-    // Update target_role and market_analysis
+    // Update target_role, market_analysis, and pdf_data
     const marketAnalysisStr = marketAnalysis ? (typeof marketAnalysis === 'object' ? JSON.stringify(marketAnalysis) : marketAnalysis) : null;
-    await query('UPDATE users SET target_role = $1, market_analysis = $2 WHERE id = $3', [targetRole, marketAnalysisStr, userId]);
+    await query('UPDATE users SET target_role = $1, market_analysis = $2, pdf_data = $4 WHERE id = $3', [targetRole, marketAnalysisStr, userId, pdfData || null]);
 
     // Delete existing milestones to avoid duplicate accumulation
     await query('DELETE FROM milestones WHERE user_id = $1', [userId]);
+
+    // Delete existing profile versions to start a fresh history for this new upload
+    await query('DELETE FROM profile_versions WHERE user_id = $1', [userId]);
 
     // Insert new milestones
     for (const node of milestones) {
@@ -56,25 +59,26 @@ export async function POST(req: Request) {
     const nextVersion = versionRes.rows[0].next_version;
 
     await query(
-      `INSERT INTO profile_versions (user_id, version_number, resume_filename, target_role, milestones, market_analysis)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
+      `INSERT INTO profile_versions (user_id, version_number, resume_filename, target_role, milestones, market_analysis, pdf_data)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
       [
         userId,
         nextVersion,
         resumeFilename || 'Initial Onboarding',
         targetRole,
         JSON.stringify(milestones),
-        marketAnalysisStr
+        marketAnalysisStr,
+        pdfData || null
       ]
     );
 
     return NextResponse.json({
       success: true,
-      message: 'Onboarding completed and milestones synchronized with database.'
+      message: 'Saved'
     });
 
   } catch (error: any) {
-    console.error('Onboarding API Error:', error);
+    // console.error('Onboarding API Error:', error);
     return NextResponse.json({ error: 'SERVER_ERROR', message: error.message }, { status: 500 });
   }
 }

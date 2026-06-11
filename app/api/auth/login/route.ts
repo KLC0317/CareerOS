@@ -30,6 +30,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'INVALID_CREDENTIALS', message: 'Invalid email or password.' }, { status: 400 });
     }
 
+    // Keep reference to previous last login
+    const previousLastLogin = user.last_login;
+
+    // Update last_login timestamp
+    try {
+      await query('UPDATE users SET last_login = NOW() WHERE id = $1', [user.id]);
+    } catch (dbErr) {
+      // Ignore database write failures during failover/sandboxing
+    }
+
     // Retrieve milestones if already onboarded
     let milestones: any[] = [];
     if (user.target_role !== 'PENDING_ONBOARDING') {
@@ -43,7 +53,7 @@ export async function POST(req: Request) {
           id: String(row.id)
         }));
       } catch (err) {
-        console.error('Error fetching milestones on login:', err);
+        // console.error('Error fetching milestones on login:', err);
       }
     }
 
@@ -55,12 +65,16 @@ export async function POST(req: Request) {
         email: user.email,
         targetRole: user.target_role,
         marketAnalysis: user.market_analysis,
+        pdfData: user.pdf_data,
+        isPremium: user.is_premium || false,
+        profilePicture: user.profile_picture || null,
+        lastLogin: previousLastLogin ? new Date(previousLastLogin).toISOString() : new Date().toISOString(),
         milestones
       }
     });
 
   } catch (error: any) {
-    console.error('Login API Error:', error);
+    // console.error('Login API Error:', error);
     return NextResponse.json({ error: 'SERVER_ERROR', message: error.message }, { status: 500 });
   }
 }

@@ -112,6 +112,10 @@ export interface JobPosting {
   requiredSkills: string[];
   baseTransitionRate: number; // baseline hazard lambda_0
   description: string;
+  jobType?: 'Full-time' | 'Part-time' | 'Contract' | 'Internship';
+  experienceLevel?: 'Entry' | 'Mid' | 'Senior' | 'Lead' | 'Executive';
+  workMode?: 'On-site' | 'Hybrid' | 'Remote';
+  createdAt?: string; // ISO date string
 }
 
 export interface HazardResult {
@@ -332,7 +336,7 @@ export function analyzeResumeText(text: string): ParsedResult {
     if (normalizedText.includes(kw)) mgtScore += 1;
   });
 
-  let recommendedRole: string = 'AI Architect';
+  let recommendedRole = 'AI Architect';
   if (feScore > aiScore && feScore > mgtScore) {
     recommendedRole = 'Frontend Architect';
   } else if (mgtScore > aiScore && mgtScore > feScore) {
@@ -340,216 +344,184 @@ export function analyzeResumeText(text: string): ParsedResult {
   }
 
   const nodes: CareerNode[] = [];
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
 
-  // Identify organizations
-  const orgList = [
-    { name: 'University of Malaya', type: 'academic', pattern: /university of malaya|um\b/i },
-    { name: 'National University of Singapore', type: 'academic', pattern: /national university of singapore|nus\b/i },
-    { name: 'Nanyang Technological University', type: 'academic', pattern: /nanyang technological university|ntu\b/i },
-    { name: 'Grab', type: 'employment', pattern: /\bgrab\b/i },
-    { name: 'Petronas', type: 'employment', pattern: /\bpetronas\b/i },
-    { name: 'Shopee', type: 'employment', pattern: /\bshopee\b/i },
-    { name: 'Carsome', type: 'employment', pattern: /\bcarsome\b/i },
-    { name: 'Maxis', type: 'employment', pattern: /\bmaxis\b/i },
-    { name: 'Maybank', type: 'employment', pattern: /\bmaybank\b/i },
-    { name: 'MIMOS', type: 'employment', pattern: /\bmimos\b/i },
-    { name: 'Google', type: 'employment', pattern: /\bgoogle\b/i },
-    { name: 'Facebook', type: 'employment', pattern: /\bfacebook|meta\b/i }
+  // Date ranges regex matching formats like:
+  // Jan 2022 - Jun 2024, 2022-01 to Present, 2022 - 2024, Jan 2022 to Present, etc.
+  const dateRangeRegex = /\b((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[\s,./-]*\d{4}|\d{4}[\s,./-]*\d{2}|\b\d{4}\b)[\s,./-]*(?:to|and|-|–|—)[\s,./-]*((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[\s,./-]*\d{4}|\d{4}[\s,./-]*\d{2}|\b\d{4}\b|\bPresent\b|\bCurrent\b)/i;
+  const INVALID_ORG_WORDS = ['date', 'dates', 'period', 'timeline', 'year', 'years', 'duration', 'time', 'when', 'from', 'to'];
+  const ROLE_KEYWORDS = [
+    'engineer', 'developer', 'architect', 'designer', 'manager', 'director', 'lead',
+    'specialist', 'consultant', 'analyst', 'administrator', 'officer', 'intern',
+    'scientist', 'researcher', 'programmer', 'expert', 'head', 'vp', 'cto', 'ceo',
+    'bachelor', 'b.sc', 'b.s', 'master', 'm.sc', 'm.s', 'ph.d', 'phd', 'doctor',
+    'associate', 'diploma', 'graduate', 'student', 'fellow', 'founder', 'co-founder'
   ];
 
-  const genericOrgRegex = /(?:work at|worked at|engineer at|developer at|specialist at|university of|college of|employed by|intern at)\s+([A-Z][a-zA-Z0-9\s]{2,20})(?:\b|at|in|on|from|,|\.)/g;
-  let match;
-  const customOrgs: string[] = [];
-  while ((match = genericOrgRegex.exec(text)) !== null) {
-    const orgName = match[1].trim();
-    if (orgName && !['Present', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'January', 'February', 'March', 'April', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].some(m => orgName.startsWith(m))) {
-      customOrgs.push(orgName);
+  const isRoleOrDegree = (str: string): boolean => {
+    const lower = str.toLowerCase();
+    return ROLE_KEYWORDS.some(kw => lower.includes(kw));
+  };
+
+  const parseDateString = (str: string): string => {
+    if (!str) return '2024-01';
+    const clean = str.trim().toLowerCase();
+    if (clean.includes('present') || clean.includes('current') || clean.includes('now')) {
+      return 'Present';
+    }
+    const yearMatch = clean.match(/\b(19|20)\d{2}\b/);
+    const year = yearMatch ? yearMatch[0] : '2024';
+    
+    const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    for (let i = 0; i < months.length; i++) {
+      if (clean.includes(months[i])) {
+        const monthNum = String(i + 1).padStart(2, '0');
+        return `${year}-${monthNum}`;
+      }
+    }
+    
+    const yyyymm = clean.match(/\b\d{4}-\d{2}\b/);
+    if (yyyymm) return yyyymm[0];
+    
+    return `${year}-01`;
+  };
+
+  const milestoneIndices: number[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (dateRangeRegex.test(lines[i])) {
+      milestoneIndices.push(i);
     }
   }
 
-  const foundOrgs: { name: string; type: string; index: number }[] = [];
-  orgList.forEach(org => {
-    const idx = text.search(org.pattern);
-    if (idx !== -1) {
-      foundOrgs.push({ name: org.name, type: org.type, index: idx });
-    }
-  });
+  if (milestoneIndices.length > 0) {
+    for (let idx = 0; idx < milestoneIndices.length; idx++) {
+      const lineIdx = milestoneIndices[idx];
+      const currentLine = lines[lineIdx];
+      
+      const dateMatch = currentLine.match(dateRangeRegex);
+      if (!dateMatch) continue;
+      
+      const startDate = parseDateString(dateMatch[1]);
+      const endDate = parseDateString(dateMatch[2]);
 
-  customOrgs.forEach(orgName => {
-    if (!foundOrgs.some(o => o.name.toLowerCase() === orgName.toLowerCase())) {
-      const idx = text.indexOf(orgName);
-      if (idx !== -1) {
-        foundOrgs.push({ name: orgName, type: 'employment', index: idx });
+      let headerText = currentLine.replace(dateRangeRegex, '').trim();
+      headerText = headerText.replace(/^[\s,.:;•/|()\-–—\[\]]+|[\s,.:;•/|()\-–—\[\]]+$/g, '').trim();
+
+      const cleanHeaderLower = headerText.toLowerCase().replace(/[^a-z]/g, '');
+      if (headerText.length < 3 || INVALID_ORG_WORDS.includes(cleanHeaderLower)) {
+        headerText = '';
       }
-    }
-  });
 
-  foundOrgs.sort((a, b) => a.index - b.index);
-
-  if (foundOrgs.length > 0) {
-    foundOrgs.forEach((org, index) => {
-      const startIdx = org.index;
-      const endIdx = index < foundOrgs.length - 1 ? foundOrgs[index + 1].index : text.length;
-      const sectionText = text.slice(startIdx, endIdx);
-
-      let role = org.type === 'academic' ? 'Bachelor of Computer Science' : 'Software Engineer';
-      const roleMatches = [
-        'Software Engineer II', 'Software Engineer', 'Senior Engineer', 'Frontend Developer', 'Backend Developer', 
-        'AI Specialist', 'Deep Learning Engineer', 'Engineering Manager', 'Director', 'Team Lead', 'Intern', 'Specialist', 
-        'Architect', 'Analyst', 'Consultant', 'Developer'
-      ];
-      for (const r of roleMatches) {
-        if (new RegExp('\\b' + r + '\\b', 'i').test(sectionText)) {
-          role = r;
-          break;
+      if (!headerText && lineIdx > 0) {
+        headerText = lines[lineIdx - 1];
+        if (headerText.length < 5 && lineIdx > 1) {
+          headerText = lines[lineIdx - 2] + ' ' + headerText;
         }
       }
 
-      let type: 'employment' | 'academic' | 'sabbatical' = org.type as any;
-      if (sectionText.toLowerCase().includes('sabbatical') || sectionText.toLowerCase().includes('career break') || sectionText.toLowerCase().includes('independent research')) {
+      let role = '';
+      let organization = '';
+
+      const separators = [/\s+at\s+/i, /\s+@\s+/, /\s*\|\s*/, /\s*–\s*/, /\s*—\s*/, /\s*-\s*/, /,\s*/];
+      let splitDone = false;
+      for (const sep of separators) {
+        if (sep.test(headerText)) {
+          const parts = headerText.split(sep).map(p => p.trim()).filter(p => p.length > 0);
+          if (parts.length >= 2) {
+            const part0Role = isRoleOrDegree(parts[0]);
+            const part1Role = isRoleOrDegree(parts[1]);
+            
+            if (part0Role && !part1Role) {
+              role = parts[0];
+              organization = parts[1];
+            } else if (part1Role && !part0Role) {
+              role = parts[1];
+              organization = parts[0];
+            } else {
+              role = parts[0];
+              organization = parts[1];
+            }
+            splitDone = true;
+            break;
+          }
+        }
+      }
+
+      if (!splitDone || !role || !organization) {
+        if (isRoleOrDegree(headerText)) {
+          role = headerText;
+          if (lineIdx > 0 && lines[lineIdx - 1] && !isRoleOrDegree(lines[lineIdx - 1])) {
+            organization = lines[lineIdx - 1];
+          } else if (lineIdx < lines.length - 1 && lines[lineIdx + 1] && !isRoleOrDegree(lines[lineIdx + 1]) && !dateRangeRegex.test(lines[lineIdx + 1])) {
+            organization = lines[lineIdx + 1];
+          } else {
+            organization = 'Independent';
+          }
+        } else {
+          organization = headerText || 'Independent';
+          if (lineIdx > 0 && lines[lineIdx - 1] && isRoleOrDegree(lines[lineIdx - 1])) {
+            role = lines[lineIdx - 1];
+          } else {
+            role = recommendedRole === 'AI Architect' ? 'AI Specialist' : (recommendedRole === 'Frontend Architect' ? 'Frontend Developer' : 'Software Professional');
+          }
+        }
+      }
+
+      role = role.replace(/^[\s,.:;•/|()\-–—\[\]]+|[\s,.:;•/|()\-–—\[\]]+$/g, '').trim();
+      organization = organization.replace(/^[\s,.:;•/|()\-–—\[\]]+|[\s,.:;•/|()\-–—\[\]]+$/g, '').trim();
+
+      const descLines: string[] = [];
+      const endSearchIdx = (idx < milestoneIndices.length - 1) ? milestoneIndices[idx + 1] : lines.length;
+      for (let j = lineIdx + 1; j < endSearchIdx; j++) {
+        const descLine = lines[j];
+        if (descLine && !dateRangeRegex.test(descLine)) {
+          descLines.push(descLine);
+        }
+      }
+      
+      const description = descLines.slice(0, 3).join(' ') || `Role at ${organization}.`;
+
+      let type: 'employment' | 'academic' | 'sabbatical' | 'project' = 'employment';
+      const orgLower = organization.toLowerCase();
+      const roleLower = role.toLowerCase();
+      if (orgLower.includes('university') || orgLower.includes('college') || orgLower.includes('school') || orgLower.includes('institute') || roleLower.includes('degree') || roleLower.includes('bachelor') || roleLower.includes('master') || roleLower.includes('phd') || roleLower.includes('b.sc') || roleLower.includes('m.sc')) {
+        type = 'academic';
+      } else if (orgLower.includes('sabbatical') || roleLower.includes('sabbatical') || orgLower.includes('break') || roleLower.includes('break') || roleLower.includes('independent research')) {
         type = 'sabbatical';
       }
 
-      const yearMatches = sectionText.match(/(?:19|20)\d{2}/g);
-      let startDate = '2022-01';
-      let endDate = 'Present';
-
-      if (yearMatches && yearMatches.length >= 2) {
-        startDate = `${yearMatches[0]}-01`;
-        endDate = `${yearMatches[1]}-06`;
-      } else if (yearMatches && yearMatches.length === 1) {
-        startDate = `${yearMatches[0]}-01`;
-        if (type === 'academic') {
-          endDate = `${parseInt(yearMatches[0]) + 3}-07`;
-        } else {
-          endDate = 'Present';
-        }
-      } else {
-        const offset = foundOrgs.length - 1 - index;
-        if (offset === 0) {
-          startDate = '2024-11';
-          endDate = 'Present';
-        } else if (offset === 1) {
-          startDate = '2022-01';
-          endDate = '2024-06';
-        } else {
-          startDate = '2018-09';
-          endDate = '2021-07';
-        }
-      }
-
-      const sectionSkills = detectedSkills.filter(s => new RegExp('\\b' + s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + '\\b', 'i').test(sectionText))
-        .map(name => ({ name, level: 'Rank-1' as const }));
+      const nodeSkills = detectedSkills.filter(s => {
+        const escaped = s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        const r = new RegExp(`\\b${escaped}\\b`, 'i');
+        return r.test(role + ' ' + organization + ' ' + description);
+      }).map(s => ({ name: s, level: 'Rank-1' as const }));
 
       nodes.push({
-        id: `parsed-${org.name.replace(/\s+/g, '-').toLowerCase()}-${index}-${Date.now()}`,
+        id: `parsed-${organization.replace(/\s+/g, '-').toLowerCase()}-${idx}-${Date.now()}`,
         role,
-        organization: org.name,
+        organization,
         type,
         startDate,
         endDate,
-        description: `Chronological milestone at ${org.name}. Verified by Career OS OCR parser.`,
-        skills: sectionSkills.length > 0 ? sectionSkills : detectedSkills.slice(0, 3).map(name => ({ name, level: 'Rank-1' as const }))
+        description,
+        skills: nodeSkills.length > 0 ? nodeSkills : detectedSkills.slice(0, 3).map(s => ({ name: s, level: 'Rank-1' as const }))
       });
-    });
+    }
   }
 
   if (nodes.length === 0) {
-    if (detectedSkills.length > 0) {
-      if (recommendedRole === 'AI Architect') {
-        nodes.push({
-          id: 'parsed-edu',
-          role: 'B.Sc. Computer Science',
-          organization: 'University of Malaya',
-          type: 'academic',
-          startDate: '2018-09',
-          endDate: '2021-07',
-          description: 'Formal academic background in Computer Science.',
-          skills: detectedSkills.filter(s => ['Python', 'Linux', 'Computer Networking'].includes(s)).map(s => ({ name: s, level: 'Rank-1' }))
-        });
-        nodes.push({
-          id: 'parsed-job1',
-          role: 'AI Engineer',
-          organization: 'Petronas AI Division',
-          type: 'employment',
-          startDate: '2022-01',
-          endDate: 'Present',
-          description: 'Developing intelligence pipelines and scaling modeling capabilities.',
-          skills: detectedSkills.filter(s => ['PyTorch', 'Deep Learning', 'Cloud Computing'].includes(s)).map(s => ({ name: s, level: 'Rank-1' }))
-        });
-      } else if (recommendedRole === 'Frontend Architect') {
-        nodes.push({
-          id: 'parsed-edu',
-          role: 'B.Sc. Computer Science',
-          organization: 'Monash University',
-          type: 'academic',
-          startDate: '2018-09',
-          endDate: '2021-07',
-          description: 'Formal academic background in Computer Science.',
-          skills: detectedSkills.filter(s => ['JavaScript', 'HTML/CSS'].includes(s)).map(s => ({ name: s, level: 'Rank-1' }))
-        });
-        nodes.push({
-          id: 'parsed-job1',
-          role: 'Frontend Developer',
-          organization: 'Grab Passenger Web',
-          type: 'employment',
-          startDate: '2022-01',
-          endDate: 'Present',
-          description: 'Optimizing web applications and managing React states.',
-          skills: detectedSkills.filter(s => ['TypeScript', 'Advanced React', 'State Management'].includes(s)).map(s => ({ name: s, level: 'Rank-1' }))
-        });
-      } else {
-        nodes.push({
-          id: 'parsed-edu',
-          role: 'B.Sc. Software Engineering',
-          organization: 'Nanyang Technological University',
-          type: 'academic',
-          startDate: '2018-09',
-          endDate: '2021-07',
-          description: 'Formal academic background in Software Engineering.',
-          skills: [{ name: 'Software Engineering', level: 'Rank-1' }]
-        });
-        nodes.push({
-          id: 'parsed-job1',
-          role: 'Senior Software Engineer & Team Lead',
-          organization: 'Shopee Delivery Team',
-          type: 'employment',
-          startDate: '2022-01',
-          endDate: 'Present',
-          description: 'Leading agile teams and architecting high-traffic distributed services.',
-          skills: detectedSkills.filter(s => ['Technical Leadership', 'Agile Delivery', 'System Design', 'Communication'].includes(s)).map(s => ({ name: s, level: 'Rank-1' }))
-        });
-      }
-    } else {
-      // Return simple fallback profile
-      nodes.push({
-        id: 'parsed-edu',
-        role: 'B.Sc. Computer Science',
-        organization: 'University of Malaya',
-        type: 'academic',
-        startDate: '2018-09',
-        endDate: '2021-07',
-        description: 'Bachelor of Computer Science. Specialized in Software Engineering.',
-        skills: [{ name: 'JavaScript', level: 'Rank-1' }, { name: 'Linux', level: 'Rank-1' }]
-      });
-      nodes.push({
-        id: 'parsed-job',
-        role: 'Software Engineer II',
-        organization: 'Grab',
-        type: 'employment',
-        startDate: '2022-01',
-        endDate: 'Present',
-        description: 'Scaled core mobile/web passenger applications. Optimized performance.',
-        skills: [{ name: 'TypeScript', level: 'Rank-1' }, { name: 'State Management', level: 'Rank-1' }]
-      });
-    }
+    const defaultRole = recommendedRole === 'AI Architect' ? 'AI Developer' : (recommendedRole === 'Frontend Architect' ? 'Frontend Developer' : 'Software Professional');
+    nodes.push({
+      id: `parsed-profile-${Date.now()}`,
+      role: defaultRole,
+      organization: 'Independent / Candidate Profile',
+      type: 'employment',
+      startDate: '2024-01',
+      endDate: 'Present',
+      description: text.substring(0, 150) + (text.length > 150 ? '...' : ''),
+      skills: detectedSkills.slice(0, 4).map(s => ({ name: s, level: 'Rank-1' as const }))
+    });
   }
-
-  nodes.forEach(n => {
-    if (n.skills.length === 0) {
-      n.skills = detectedSkills.slice(0, 3).map(s => ({ name: s, level: 'Rank-1' }));
-    }
-  });
 
   // Infer location
   let geo = 'Southeast Asia (Inferred)';
@@ -795,39 +767,43 @@ export function tailorCVForTarget(
   nodes: CareerNode[],
   candidateSkills: string[],
   targetPathOrJob: string,
-  customJobDesc?: string
+  customJobDesc?: string,
+  originalSummary?: string
 ): TailoredCV {
   const normTarget = targetPathOrJob.toLowerCase().trim();
   const logs: string[] = [];
-  
-  // 1. Determine target path skills (prerequisites + core node)
+
+  // 1. Get required skills for this pathway or job description
   let requiredSkills: string[] = [];
-  const targetDagNode = SKILL_DAG[targetPathOrJob];
-  if (targetDagNode) {
+  if (SKILL_DAG[targetPathOrJob]) {
     requiredSkills = [targetPathOrJob, ...getPreRequisitesRecursive(targetPathOrJob)];
   } else {
-    // If not in DAG, search for skills in name or description
-    const allAvailable = Object.keys(SKILL_DAG);
-    requiredSkills = allAvailable.filter(s => 
-      normTarget.includes(s.toLowerCase()) || 
-      (customJobDesc && customJobDesc.toLowerCase().includes(s.toLowerCase()))
-    );
+    // If it's a custom job description or path, extract keywords matching available skills
+    const availableSkills = Object.keys(SKILL_DAG);
+    const searchSrc = (customJobDesc || targetPathOrJob).toLowerCase();
+    requiredSkills = availableSkills.filter(skill => {
+      const escaped = skill.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const regex = new RegExp(`\\b${escaped}\\b`, 'i');
+      return regex.test(searchSrc);
+    });
     // If still empty, supply default technical foundations
     if (requiredSkills.length === 0) {
       requiredSkills = ['Software Engineering', 'Linux', 'Communication'];
     }
   }
 
-  // 2. Identify match statistics
-  const matchedKeywords = requiredSkills.filter(s => candidateSkills.includes(s));
-  const missingKeywords = requiredSkills.filter(s => !candidateSkills.includes(s));
+  // 2. Identify matches, missing, and suggested skills
+  const matchedKeywords = requiredSkills.filter(skill => candidateSkills.includes(skill));
+  const missingKeywords = requiredSkills.filter(skill => !candidateSkills.includes(skill));
+  
+  // Suggested are related prerequisites
   const suggestedKeywords = Object.keys(SKILL_DAG).filter(s => 
     !candidateSkills.includes(s) && 
     (normTarget.includes(s.toLowerCase()) || (customJobDesc && customJobDesc.toLowerCase().includes(s.toLowerCase()))) &&
     !missingKeywords.includes(s)
   );
 
-  let matchScore = 75; // default
+  let matchScore = 0;
   if (requiredSkills.length > 0) {
     matchScore = Math.round((matchedKeywords.length / requiredSkills.length) * 100);
     // Give a small boost if they have experience in the exact same field
@@ -837,146 +813,61 @@ export function tailorCVForTarget(
 
   logs.push(`[Live CV] Match score calculated at ${matchScore}% based on ${matchedKeywords.length}/${requiredSkills.length} intent skills.`);
 
-  // 3. Tailor CV content based on target
+  // Helper function to highlight matches that are already in the text (preserving honesty)
+  const highlightText = (text: string, keywords: string[]): string => {
+    if (!text) return '';
+    let result = text;
+    // Sort keywords by length descending to avoid partial matches
+    const sortedKws = [...keywords].sort((a, b) => b.length - a.length);
+    sortedKws.forEach(kw => {
+      if (!kw) return;
+      const escaped = kw.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const regex = new RegExp(`\\b(${escaped})\\b(?![^\\[]*\\]\\])`, 'gi');
+      result = result.replace(regex, '[[OPT:$1]]');
+    });
+    return result;
+  };
+
+  // 3. Tailor CV content based on target (only highlighting matching words, never fabricating)
   let summary = '';
-  let tailoredNodes: CareerNode[] = [];
-
-  const isAI = normTarget.includes('ai') || normTarget.includes('deep learning') || normTarget.includes('machine learning') || normTarget.includes('pytorch') || normTarget.includes('architect') && normTarget.includes('ai');
-  const isFrontend = normTarget.includes('frontend') || normTarget.includes('react') || normTarget.includes('web') || normTarget.includes('ui') || normTarget.includes('ux') || normTarget.includes('architect') && normTarget.includes('frontend');
-  const isDirector = normTarget.includes('director') || normTarget.includes('manager') || normTarget.includes('lead') || normTarget.includes('agile') || normTarget.includes('product') || normTarget.includes('communication') || normTarget.includes('strategy');
-
-  if (isAI) {
-    summary = "[[OPT:Enterprise Technical Leader & System Architect with a deep specialization in Sovereign AI, distributed deep learning pipelines, and PyTorch. Proven track record of scaling neural network models and architecting high-performance GPU compute clusters on AWS and GCP.]]";
-    logs.push("[Live CV] Replaced executive summary to emphasize neural networks, Sovereign AI, and PyTorch frameworks.");
-
-    tailoredNodes = nodes.map(node => {
-      const n = { ...node };
-      const org = n.organization.toLowerCase();
-      if (org.includes('petronas')) {
-        n.role = "[[OPT:AI Architect / Senior AI Engineer]]";
-        n.description = "[[OPT:Led the Petronas sovereign AI model deployment team. Designed and trained multi-node PyTorch LLM networks, and optimized model inferencing workloads on Kubernetes.]]";
-        n.achievements = [
-          "[[OPT:Trained a 7B parameter sovereign LLM on localized energy datasets.]]",
-          "[[OPT:Improved neural network inferencing throughput by 42% via custom TensorRT compilers.]]",
-          "[[OPT:Collaborated on hybrid cloud data warehousing strategies for geological model data.]]"
-        ];
-        logs.push("[Live CV] Tailored Petronas achievements: Emphasized Sovereign LLM training and compiler optimizations.");
-      } else if (org.includes('grab')) {
-        n.role = "[[OPT:Senior Backend & ML Infrastructure Engineer]]";
-        n.description = "[[OPT:Led database clustering and high-throughput data pipelines for the passenger transport team. Optimized distributed query caching and PyTorch model ingestion rates.]]";
-        n.achievements = [
-          "[[OPT:Engineered low-latency feature stores for real-time passenger pricing models.]]",
-          "[[OPT:Scaled Kafka streaming logs to ingest 100M events/day.]]",
-          "[[OPT:Mentored 4 junior developers on Linux scripting and microservice system designs.]]"
-        ];
-        logs.push("[Live CV] Tailored Grab achievements: Focused on real-time features stores and pricing models.");
-      } else if (n.type === 'academic') {
-        n.description = "[[OPT:Academic specialization in high-performance computing, neural networks, and linear algebra. Designed parallelized matrix multiplier algorithms.]]";
-        n.achievements = [
-          "[[OPT:Graduated with First Class Honors in Computer Science.]]",
-          "[[OPT:Published graduation thesis on GPU-accelerated linear algebra operations.]]"
-        ];
-      }
-      return n;
-    });
-  } else if (isFrontend) {
-    summary = "[[OPT:Senior Frontend Architect with 5+ years of experience building high-fidelity web applications, responsive user interfaces, and complex state management workflows. Expert in React, TypeScript, and web browser rendering performance.]]";
-    logs.push("[Live CV] Replaced executive summary to highlight React components, responsive layouts, and Lighthouse audits.");
-
-    tailoredNodes = nodes.map(node => {
-      const n = { ...node };
-      const org = n.organization.toLowerCase();
-      if (org.includes('petronas')) {
-        n.role = "[[OPT:Frontend Architect / UX Engineer]]";
-        n.description = "[[OPT:Architected the primary telemetry monitoring dashboard for petro-chemical operations. Managed React component library, design system, and custom charting tools.]]";
-        n.achievements = [
-          "[[OPT:Built an interactive real-time telemetry grid handling 5,000 updates/second.]]",
-          "[[OPT:Decreased initial asset bundle size by 35% through dynamic code-splitting.]]",
-          "[[OPT:Integrated WebSockets telemetry feed with zero browser paint stutter.]]"
-        ];
-        logs.push("[Live CV] Tailored Petronas achievements: Highlighted component libraries and WebSocket dashboards.");
-      } else if (org.includes('grab')) {
-        n.role = "[[OPT:Frontend Lead - Web Passenger Portal]]";
-        n.description = "[[OPT:Led the frontend overhaul of the Grab Web Passenger Portal. Optimized React states and browser paint pipelines to reduce Time-to-Interactive (TTI).]]";
-        n.achievements = [
-          "[[OPT:Spearheaded transition from legacy state machines to Redux Toolkit, resolving race conditions.]]",
-          "[[OPT:Achieved a 98/100 Lighthouse performance score on core passenger booking flow.]]",
-          "[[OPT:Enforced TypeScript type guards, reducing runtime frontend exceptions by 90%.]]"
-        ];
-        logs.push("[Live CV] Tailored Grab achievements: Emphasized Redux state management and Lighthouse scores.");
-      } else if (n.type === 'academic') {
-        n.description = "[[OPT:Academic focus on human-computer interaction, web technologies, and software engineering. Developed advanced interactive student portal applications.]]";
-        n.achievements = [
-          "[[OPT:Graduated with First Class Honors. Major in Web Technologies.]]",
-          "[[OPT:Created cross-platform student portal used by 2,000+ daily active users.]]"
-        ];
-      }
-      return n;
-    });
-  } else if (isDirector) {
-    summary = "[[OPT:Technical Leader & Engineering Director with a track record of scaling cross-functional teams, driving product strategy, and delivering high-value software systems. Adept in agile methodologies, system design, and tech talent coaching.]]";
-    logs.push("[Live CV] Replaced executive summary to emphasize product strategy, team scaling, and agile sprint delivery.");
-
-    tailoredNodes = nodes.map(node => {
-      const n = { ...node };
-      const org = n.organization.toLowerCase();
-      if (org.includes('petronas')) {
-        n.role = "[[OPT:Engineering Director / Technical Team Lead]]";
-        n.description = "[[OPT:Managed a team of 12 software engineers across the AI and Cloud divisions. Defined product roadmaps, agile delivery cycles, and system design reviews.]]";
-        n.achievements = [
-          "[[OPT:Delivered the enterprise cloud migration project 3 weeks ahead of schedule.]]",
-          "[[OPT:Introduced peer-review mentorship cycles, increasing team retention by 18%.]]",
-          "[[OPT:Aligned department objectives with company-wide tech strategies.]]"
-        ];
-        logs.push("[Live CV] Tailored Petronas achievements: Focused on roadmap planning, team retention, and cloud sprints.");
-      } else if (org.includes('grab')) {
-        n.role = "[[OPT:Engineering Manager - Dispatch Systems]]";
-        n.description = "[[OPT:Spearheaded cross-team collaboration for the passenger dispatch division. Orchestrated agile scrum cycles and communication frameworks.]]";
-        n.achievements = [
-          "[[OPT:Coordinated execution across 3 engineering hubs (KL, Singapore, Jakarta) for major release.]]",
-          "[[OPT:Facilitated market analysis research leading to Grab's local tier expansion strategy.]]",
-          "[[OPT:Established SLA targets for dispatch latency, improving performance by 15%.]]"
-        ];
-        logs.push("[Live CV] Tailored Grab achievements: Highlighted multi-hub engineering collaboration and expansion strategy.");
-      } else if (n.type === 'academic') {
-        n.description = "[[OPT:Specialized in software engineering methodologies, project management, and collaborative development. Led UM programming teams.]]";
-        n.achievements = [
-          "[[OPT:Graduated with First Class Honors. Class President.]]",
-          "[[OPT:Led the UM competitive programming team to ACM-ICPC regional finals.]]"
-        ];
-      }
-      return n;
-    });
+  if (originalSummary) {
+    const cleanOrig = originalSummary.replace(/\[\[OPT:.*?\]\]/g, '').trim();
+    summary = highlightText(cleanOrig, matchedKeywords);
+    logs.push(`[Live CV] Kept original summary and highlighted relevant matching skills.`);
   } else {
-    // Custom dynamically-interpolated pathway or pasted job description
-    const pathName = targetPathOrJob || 'Custom Technical Role';
-    const primarySkill = matchedKeywords[0] || requiredSkills[0] || 'Technical Excellence';
-    const secondarySkill = matchedKeywords[1] || requiredSkills[1] || 'Agile Execution';
-
-    summary = `[[OPT:Highly qualified technical professional specialized in ${pathName}. Experienced in leveraging key technical frameworks like ${primarySkill} and ${secondarySkill} to drive architectural efficiency, optimize codebases, and deliver scalable enterprise systems.]]`;
-    logs.push(`[Live CV] Generated custom summary dynamically suited for: "${pathName}".`);
-
-    tailoredNodes = nodes.map(node => {
-      const n = { ...node };
-      const org = n.organization.toLowerCase();
-      if (n.type === 'employment') {
-        n.role = `[[OPT:Senior Specialist (${pathName})]]`;
-        n.description = `[[OPT:Collaborated on key production releases, aligning systems with ${pathName} design patterns. Unified backend workflows, cloud architectures, and ${primarySkill} features.]]`;
-        n.achievements = [
-          `[[OPT:Integrated ${primarySkill} modules, improving operational efficiency by 28%.]]`,
-          `[[OPT:Leveraged ${secondarySkill} workflows to coordinate sprint deliveries and resolve system blocks.]]`,
-          `[[OPT:Authored technical blueprints and documentation for onboarding new engineers.]]`
-        ];
-      } else if (n.type === 'academic') {
-        n.description = `[[OPT:Academic background focused on engineering patterns, ${primarySkill} foundations, and database systems.]]`;
-        n.achievements = [
-          `[[OPT:Graduated with Honors. Specialized in ${primarySkill} algorithms.]]`
-        ];
-      }
-      return n;
-    });
-    logs.push(`[Live CV] Tailored experience milestones to project custom "${pathName}" requirements.`);
+    // Factual summary from nodes
+    const orgs = nodes.map(n => n.organization).filter(Boolean);
+    const roles = nodes.map(n => n.role).filter(Boolean);
+    const cleanOrgs = Array.from(new Set(orgs));
+    const cleanRoles = Array.from(new Set(roles));
+    
+    let synthesized = '';
+    if (cleanRoles.length > 0 && cleanOrgs.length > 0) {
+      synthesized = `Professional with experience as ${cleanRoles.slice(0, 2).join(' and ')} at ${cleanOrgs.slice(0, 2).join(', ')}.`;
+    } else {
+      synthesized = `Technical professional with experience in software development and technical systems.`;
+    }
+    summary = highlightText(synthesized, matchedKeywords);
+    logs.push(`[Live CV] Generated factual profile summary and highlighted matching skills.`);
   }
+
+  // Handle nodes tailoring (preserves original text exactly, only highlights keywords)
+  const tailoredNodes = nodes.map(node => {
+    const n = { ...node };
+    
+    const cleanRole = n.role.replace(/\[\[OPT:.*?\]\]/g, '').trim();
+    const cleanDesc = n.description ? n.description.replace(/\[\[OPT:.*?\]\]/g, '').trim() : '';
+    const cleanAchievements = (n.achievements || []).map(ach => ach.replace(/\[\[OPT:.*?\]\]/g, '').trim());
+
+    // Highlight matching keywords that are already in the candidate's text
+    n.role = highlightText(cleanRole, matchedKeywords);
+    n.description = highlightText(cleanDesc, matchedKeywords);
+    n.achievements = cleanAchievements.map(ach => highlightText(ach, matchedKeywords));
+    
+    return n;
+  });
+
+  logs.push(`[Live CV] Highlighted matching skills in roles and achievements. Zero fabricated content added.`);
 
   // 4. Sort skills list so that matched intent keywords are at the front
   tailoredNodes.forEach(node => {
