@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCareerEngine } from '../hooks/useCareerEngine';
 import { CareerNode, SKILL_DAG, analyzeResumeText } from '../lib/careerEngine';
+import { INITIAL_CAREER_NODES } from '../lib/mockData';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 import { Button } from './ui/Button';
 import { 
@@ -196,7 +197,30 @@ export default function OnboardingWizard() {
   };
 
   const handleSkipScan = () => {
-    setMilestones([]);
+    const sampleNodes = JSON.parse(JSON.stringify(INITIAL_CAREER_NODES));
+    setMilestones(sampleNodes);
+    setTargetRole('AI Architect');
+    setRecommendedRole('AI Architect');
+    setRecommendedRoles([
+      {
+        role: 'AI Architect',
+        justification: 'Your background at Grab and Petronas combined with deep learning studies makes you an ideal candidate for leading AI deployment and architecture design.'
+      },
+      {
+        role: 'Frontend Architect',
+        justification: 'Leverages your 2+ years of React, TypeScript, and state management experience at Grab to design modern client-side architectures.'
+      },
+      {
+        role: 'ML Engineer',
+        justification: 'Aligns with your PyTorch research and development work at Petronas on predictive asset monitoring.'
+      }
+    ]);
+    setMarketAnalysis({
+      geo: 'Kuala Lumpur, MY',
+      marketDemand: 'High demand in energy, finance, and logistics sectors for AI pipeline orchestration.',
+      justification: 'AI Architect roles in Southeast Asia are growing at 35% YoY with competitive salaries.'
+    });
+    setResumeFilename('Demo Profile (Sample Data)');
     setStep(2);
   };
 
@@ -356,9 +380,10 @@ export default function OnboardingWizard() {
                     <button
                       type="button"
                       onClick={handleSkipScan}
-                      className="text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
+                      className="px-4 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-600 hover:text-slate-800 text-xs font-bold rounded-xl shadow-xs transition-all duration-200 cursor-pointer flex items-center gap-1.5 active:scale-[0.98]"
                     >
-                      Skip: Setup manually
+                      <FileText className="h-3.5 w-3.5 text-slate-500" />
+                      Skip, use example data
                     </button>
                     <Button 
                       type="submit" 

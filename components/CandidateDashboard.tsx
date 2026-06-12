@@ -7,8 +7,8 @@ import ForecastingSimulator from './ForecastingSimulator';
 import CohortInsights from './CohortInsights';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 import { Button } from './ui/Button';
-import { 
-  Briefcase, Layers, TrendingUp, Sparkles, CheckCircle2, User, 
+import {
+  Briefcase, Layers, TrendingUp, Sparkles, CheckCircle2, User,
   FileText, History, RefreshCw, Upload, Database, Check, AlertCircle, FileClock,
   MapPin, Globe, Settings, Plus, Trash2, Edit3, X, Sparkle, Download, CheckSquare, ListPlus,
   Eye, EyeOff, ArrowRight, Users, Terminal, Cpu, FileSpreadsheet, Maximize2
@@ -53,6 +53,7 @@ export default function CandidateDashboard() {
   const [dashboardApiKeyWarning, setDashboardApiKeyWarning] = useState(false);
   const [dashboardErrorMsg, setDashboardErrorMsg] = useState<string | null>(null);
   const [restoringId, setRestoringId] = useState<number | null>(null);
+  const [pendingAddSkill, setPendingAddSkill] = useState<string | null>(null);
   const [isSavingSnapshot, setIsSavingSnapshot] = useState(false);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
 
@@ -121,7 +122,7 @@ export default function CandidateDashboard() {
     const showRandomAlert = () => {
       const randomAlert = alerts[Math.floor(Math.random() * alerts.length)];
       const similarityWithVariance = Math.min(100, Math.max(50, randomAlert.similarity + Math.floor(Math.random() * 7) - 3));
-      
+
       setActiveAlert({
         prefix: randomAlert.prefix,
         similarity: similarityWithVariance,
@@ -187,22 +188,22 @@ export default function CandidateDashboard() {
   // Trigger simulation of AI tailoring
   const triggerOptimizationSimulation = () => {
     if (isOptimizing) return;
-    
+
     setIsOptimizing(true);
     setOptimizationStage('analyzing');
     setSimulatedScore(Math.floor(Math.random() * 20) + 30); // start at lower score
-    
+
     const logs = [
       `[AI Agent] Connecting to TKG (Trajectory Knowledge Graph) API endpoints...`,
       `[AI Agent] Analyzing destination requirements for target: "${activeCvTarget}"`,
-      customRealignmentPrompt.trim() 
+      customRealignmentPrompt.trim()
         ? `[AI Agent] Applying custom alignment prompt constraints: "${customRealignmentPrompt.trim()}"`
         : `[AI Agent] No custom constraints provided. Running standard alignment.`,
       `[AI Agent] Found ${tailoredCV.matchedKeywords.length} matched skills, ${tailoredCV.missingKeywords.length} missing prerequisites.`,
       `[NLP Realignment] Realignment coefficient computed. Adjusting summary and achievements...`
     ];
     setAgentConsoleLogs(logs);
-    
+
     // Laser scanning horizontal sweep effect
     const canvasElement = document.getElementById('printable-resume-canvas');
     if (canvasElement) {
@@ -229,61 +230,98 @@ export default function CandidateDashboard() {
       const summaryWords = tailoredCV.summary.split(' ');
       let currentSummaryIdx = 0;
 
-      const timer = setInterval(() => {
-        let completed = true;
+      let currentMilestoneIdx = 0;
+      let currentDescWordIdx = 0;
+      let currentAchIdx = 0;
+      let currentAchWordIdx = 0;
 
-        // Type the Professional Summary
+      const timer = setInterval(() => {
+        let completed = false;
+
+        // Check if we are typing the summary
         if (currentSummaryIdx < summaryWords.length) {
           currentSummaryIdx += 1;
           setDisplayedSummary(summaryWords.slice(0, currentSummaryIdx).join(' ') + ' █');
-          completed = false;
         } else {
+          // Summary is finished, make sure there's no cursor
           setDisplayedSummary(tailoredCV.summary);
-        }
 
-        // Type the Experience descriptions and accomplishments
-        setDisplayedMilestones(prev => {
-          return prev.map((m, mIdx) => {
-            const targetMilestone = tailoredCV.milestones[mIdx];
-            if (!targetMilestone) return m;
-
-            // Type description
-            const targetDescWords = targetMilestone.description.split(' ');
-            const currentDescWords = m.description.split(' ').filter(Boolean);
+          // Now type milestones sequentially
+          if (currentMilestoneIdx < tailoredCV.milestones.length) {
+            const targetMilestone = tailoredCV.milestones[currentMilestoneIdx];
+            const targetDescWords = targetMilestone.description.split(' ').filter(Boolean);
             
-            let newDesc = m.description;
-            if (currentDescWords.length < targetDescWords.length) {
-              newDesc = targetDescWords.slice(0, currentDescWords.length + 1).join(' ') + ' █';
-              completed = false;
-            } else {
-              newDesc = targetMilestone.description;
-            }
-
-            // Type achievements
-            const newAchievements = (m.achievements || []).map((ach, achIdx) => {
-              const targetAch = targetMilestone.achievements?.[achIdx] || '';
-              const targetAchWords = targetAch.split(' ');
-              const currentAchWords = ach.split(' ').filter(Boolean);
+            // Check if we are typing description
+            if (currentDescWordIdx < targetDescWords.length) {
+              currentDescWordIdx += 1;
+              const newDesc = targetDescWords.slice(0, currentDescWordIdx).join(' ') + ' █';
               
-              if (currentAchWords.length < targetAchWords.length) {
-                completed = false;
-                return targetAchWords.slice(0, currentAchWords.length + 1).join(' ') + ' █';
-              }
-              return targetAch;
-            });
+              setDisplayedMilestones(prev => prev.map((m, idx) => {
+                if (idx === currentMilestoneIdx) {
+                  return { ...m, description: newDesc };
+                }
+                return m;
+              }));
+            } else {
+              // Description finished, make sure it's clean (no cursor)
+              setDisplayedMilestones(prev => prev.map((m, idx) => {
+                if (idx === currentMilestoneIdx) {
+                  return { ...m, description: targetMilestone.description };
+                }
+                return m;
+              }));
 
-            return {
-              ...m,
-              description: newDesc,
-              achievements: newAchievements
-            };
-          });
-        });
+              // Check if we are typing achievements
+              const targetAchievements = targetMilestone.achievements || [];
+              if (currentAchIdx < targetAchievements.length) {
+                const targetAch = targetAchievements[currentAchIdx];
+                const targetAchWords = targetAch.split(' ').filter(Boolean);
+
+                if (currentAchWordIdx < targetAchWords.length) {
+                  currentAchWordIdx += 1;
+                  const newAch = targetAchWords.slice(0, currentAchWordIdx).join(' ') + ' █';
+
+                  setDisplayedMilestones(prev => prev.map((m, idx) => {
+                    if (idx === currentMilestoneIdx) {
+                      const achs = [...(m.achievements || [])];
+                      achs[currentAchIdx] = newAch;
+                      return { ...m, achievements: achs };
+                    }
+                    return m;
+                  }));
+                } else {
+                  // Achievement finished, clean it up
+                  setDisplayedMilestones(prev => prev.map((m, idx) => {
+                    if (idx === currentMilestoneIdx) {
+                      const achs = [...(m.achievements || [])];
+                      achs[currentAchIdx] = targetAch;
+                      return { ...m, achievements: achs };
+                    }
+                    return m;
+                  }));
+
+                  // Go to next achievement
+                  currentAchIdx += 1;
+                  currentAchWordIdx = 0;
+                }
+              } else {
+                // Milestone finished! Move to next milestone
+                currentMilestoneIdx += 1;
+                currentDescWordIdx = 0;
+                currentAchIdx = 0;
+                currentAchWordIdx = 0;
+              }
+            }
+          } else {
+            // Everything is completed!
+            completed = true;
+          }
+        }
 
         // Tick simulated score towards the actual tailored matchScore
         setSimulatedScore(prev => {
           if (prev < tailoredCV.matchScore) {
-            return Math.min(tailoredCV.matchScore, prev + 2);
+            return Math.min(tailoredCV.matchScore, prev + 1);
           }
           return prev;
         });
@@ -294,7 +332,7 @@ export default function CandidateDashboard() {
           setDisplayedMilestones(tailoredCV.milestones);
           setSimulatedScore(tailoredCV.matchScore);
           setOptimizationStage('finishing');
-          
+
           setAgentConsoleLogs(prev => [
             ...prev,
             `[AI Agent] Realignment finalized. Match relevance verified at ${tailoredCV.matchScore}%.`,
@@ -354,7 +392,7 @@ ${tailoredCV.milestones.map(m => `
             setNeedsOptimization(false);
           }, 800);
         }
-      }, 80);
+      }, 150);
     }, 1500); // 1.5s for analysis and scanning sweep
   };
 
@@ -380,7 +418,7 @@ ${tailoredCV.milestones.map(m => `
   // Helper to highlight tailoring diffs
   const renderTailoredText = (text: string) => {
     if (!text) return null;
-    
+
     // Check if there is a typing cursor '█' at the end
     const hasCursor = text.endsWith(' █') || text.endsWith('█');
     const cleanText = hasCursor ? (text.endsWith(' █') ? text.slice(0, -2) : text.slice(0, -1)) : text;
@@ -390,8 +428,8 @@ ${tailoredCV.milestones.map(m => `
       if (part.startsWith('[[OPT:') && part.endsWith(']]')) {
         const cleanVal = part.slice(6, -2);
         return highlightDiffs ? (
-          <span 
-            key={idx} 
+          <span
+            key={idx}
             className="bg-emerald-50 text-emerald-800 border-b border-emerald-300 font-medium px-0.5 rounded-sm transition-all duration-300"
           >
             {cleanVal}
@@ -515,7 +553,7 @@ ${tailoredCV.milestones.map(m => `
     setUploadFilename(file.name);
     setDashboardErrorMsg(null);
     setPendingParsedData(null);
-    
+
     let progressVal = 0;
     const progressInterval = setInterval(() => {
       if (progressVal < 70) {
@@ -607,7 +645,7 @@ ${tailoredCV.milestones.map(m => `
       { role: pendingParsedData.recommendedRole || 'AI Architect', justification: pendingParsedData.marketAnalysis?.justification || 'Highly aligned with your profile.' }
     ];
     const matchingOption = rolesArray.find((r: any) => r.role === selectedDashboardRole);
-    
+
     // Incorporate the parsed summary into marketAnalysis object
     let finalMarketAnalysis = pendingParsedData.marketAnalysis || {};
     finalMarketAnalysis = {
@@ -617,9 +655,9 @@ ${tailoredCV.milestones.map(m => `
     };
 
     const res = await onboardCandidate(
-      userProfile.email, 
-      selectedDashboardRole, 
-      pendingParsedData.nodes, 
+      userProfile.email,
+      selectedDashboardRole,
+      pendingParsedData.nodes,
       uploadFilename,
       JSON.stringify(finalMarketAnalysis),
       uploadedPdfData || undefined
@@ -657,31 +695,28 @@ ${tailoredCV.milestones.map(m => `
       <div className="flex border-b border-slate-200 overflow-x-auto custom-scrollbar">
         <button
           onClick={() => setActiveTab('trajectory')}
-          className={`px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-colors duration-200 whitespace-nowrap ${
-            activeTab === 'trajectory'
+          className={`px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-colors duration-200 whitespace-nowrap ${activeTab === 'trajectory'
               ? 'border-teal-500 text-teal-600'
               : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
+            }`}
         >
           My Career Map
         </button>
         <button
           onClick={() => setActiveTab('profile')}
-          className={`px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-colors duration-200 whitespace-nowrap ${
-            activeTab === 'profile'
+          className={`px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-colors duration-200 whitespace-nowrap ${activeTab === 'profile'
               ? 'border-teal-500 text-teal-600'
               : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
+            }`}
         >
           Profile & Resume Builder
         </button>
         <button
           onClick={() => setActiveTab('forecast')}
-          className={`px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-colors duration-200 whitespace-nowrap ${
-            activeTab === 'forecast'
+          className={`px-5 py-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-colors duration-200 whitespace-nowrap ${activeTab === 'forecast'
               ? 'border-teal-500 text-teal-600'
               : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
+            }`}
         >
           Career Move Planner
         </button>
@@ -698,18 +733,17 @@ ${tailoredCV.milestones.map(m => `
             transition={{ duration: 0.2, ease: 'easeInOut' }}
           >
             {activeTab === 'trajectory' && <TemporalCanvas />}
-            
+
             {activeTab === 'profile' && (
-              <div className="flex flex-col gap-6 relative">
-                
+              <div className="flex flex-col gap-6">
                 {/* Warning Banner when optimization is needed */}
                 {needsOptimization && (
-                  <div className="bg-blue-50/80 border border-blue-200 rounded-xl p-3 flex items-center justify-between gap-3 animate-pulse-glow">
+                  <div className="bg-blue-50/80 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-xl p-3 flex items-center justify-between gap-3 animate-pulse-glow">
                     <div className="flex items-center gap-2">
-                      <Sparkles className="h-4.5 w-4.5 text-blue-605 animate-spin-slow shrink-0" />
+                      <Sparkles className="h-4.5 w-4.5 text-blue-600 dark:text-blue-400 shrink-0" />
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-xs font-bold text-blue-900">Path Alignment Required</span>
-                        <span className="text-[10px] text-blue-750">You updated your trajectory target. Click "Optimize Resume" to trigger the AI alignment.</span>
+                        <span className="text-xs font-bold text-blue-900 dark:text-blue-100">Path Alignment Required</span>
+                        <span className="text-[10px] text-blue-700 dark:text-blue-400">You updated your trajectory target. Click "Optimize Resume" to trigger the AI alignment.</span>
                       </div>
                     </div>
                     <button
@@ -721,61 +755,62 @@ ${tailoredCV.milestones.map(m => `
                     </button>
                   </div>
                 )}
-                
+
                 {/* Dynamic Workspace Grid */}
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-                  
+
                   {/* Column 1: Settings & Snapshots (Left Panel) */}
                   <div className="xl:col-span-3 lg:col-span-4 flex flex-col gap-6 order-1">
-                    
+
                     {/* Optimization Targeting Panel */}
-                    <Card className="border-slate-200 shadow-xs relative overflow-hidden">
-                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-teal-500" />
-                      <CardHeader className="border-b border-slate-100 pb-3 flex items-center gap-2">
-                        <Settings className="h-4.5 w-4.5 text-blue-600" />
-                        <CardTitle className="text-sm font-bold text-slate-850">Live CV Optimizer Settings</CardTitle>
+                    <Card className="border-slate-200 dark:border-slate-800 shadow-xs relative overflow-hidden bg-white dark:bg-slate-950">
+                      <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-600 via-indigo-500 to-teal-500" />
+                      <CardHeader className="border-b border-slate-100 dark:border-slate-850 pb-3 flex items-center gap-2 bg-slate-50/50 dark:bg-slate-900/10">
+                        <Settings className="h-4.5 w-4.5 text-blue-600 dark:text-blue-400 animate-pulse" />
+                        <div className="flex flex-col">
+                          <CardTitle className="text-sm font-extrabold text-slate-850 dark:text-white">Optimizer Settings</CardTitle>
+                          <span className="text-[9px] text-slate-450 dark:text-slate-500">Tailor CV achievements using AI</span>
+                        </div>
                       </CardHeader>
                       <CardContent className="flex flex-col gap-4 pt-4">
-                        
+
                         {/* CV Mode Select */}
                         <div>
-                          <label className="text-[10px] uppercase font-bold tracking-wider text-slate-450 block mb-2 font-mono">CV Target Intent Mode</label>
-                          <div className="grid grid-cols-2 gap-2">
+                          <label className="text-[9.5px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400 block mb-2 font-mono">CV Target Intent Mode</label>
+                          <div className="grid grid-cols-2 gap-1 bg-slate-50 dark:bg-slate-900/50 p-1 rounded-xl border border-slate-150 dark:border-slate-850">
                             <button
                               type="button"
                               onClick={() => setCvMode('path')}
-                              className={`p-3 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center gap-1.5 ${
-                                cvMode === 'path'
-                                  ? 'border-blue-500 bg-blue-50/10 ring-1 ring-blue-500/5'
-                                  : 'border-slate-200 hover:border-slate-300 bg-slate-50/50'
-                              }`}
+                              className={`py-2 px-3 rounded-lg text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 ${cvMode === 'path'
+                                  ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 font-extrabold shadow-sm border border-slate-200 dark:border-slate-700'
+                                  : 'text-slate-500 dark:text-slate-450 hover:text-slate-805 dark:hover:text-slate-200'
+                                }`}
                             >
-                              <TrendingUp className={`h-4.5 w-4.5 ${cvMode === 'path' ? 'text-blue-600' : 'text-slate-400'}`} />
-                              <span className="text-[10.5px] font-bold text-slate-850">Target Trajectory</span>
+                              <TrendingUp className="h-4 w-4" />
+                              <span className="text-[11px] tracking-tight">Trajectory</span>
                             </button>
                             <button
                               type="button"
                               onClick={() => setCvMode('job')}
-                              className={`p-3 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center gap-1.5 ${
-                                cvMode === 'job'
-                                  ? 'border-blue-500 bg-blue-50/10 ring-1 ring-blue-500/5'
-                                  : 'border-slate-200 hover:border-slate-300 bg-slate-50/50'
-                              }`}
+                              className={`py-2 px-3 rounded-lg text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 ${cvMode === 'job'
+                                  ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 font-extrabold shadow-sm border border-slate-200 dark:border-slate-700'
+                                  : 'text-slate-500 dark:text-slate-455 hover:text-slate-805 dark:hover:text-slate-200'
+                                }`}
                             >
-                              <Briefcase className={`h-4.5 w-4.5 ${cvMode === 'job' ? 'text-blue-600' : 'text-slate-400'}`} />
-                              <span className="text-[10.5px] font-bold text-slate-850">Job Application</span>
+                              <Briefcase className="h-4 w-4" />
+                              <span className="text-[11px] tracking-tight">Job Listing</span>
                             </button>
                           </div>
                         </div>
 
                         {/* Dropdown Selectors based on mode */}
                         {cvMode === 'path' ? (
-                          <div className="flex flex-col gap-2">
-                            <label className="text-[10px] uppercase font-bold tracking-wider text-slate-450 block font-mono">Active Target Pathway</label>
+                          <div className="flex flex-col gap-2.5">
+                            <label className="text-[9.5px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400 block font-mono">Active Target Pathway</label>
                             <select
                               value={intentPath}
                               onChange={(e) => setIntentPath(e.target.value)}
-                              className="w-full max-w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer truncate"
+                              className="w-full max-w-full text-xs bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-slate-805 dark:text-slate-200 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/10 cursor-pointer truncate font-medium transition-all"
                             >
                               {careerPaths.map(path => (
                                 <option key={path} value={path}>{path}</option>
@@ -784,16 +819,16 @@ ${tailoredCV.milestones.map(m => `
                             <button
                               type="button"
                               onClick={() => setIsCustomPathModalOpen(true)}
-                              className="w-full py-1.8 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 hover:text-slate-900 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-3xs transition-colors"
+                              className="w-full py-2 bg-slate-50/50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-850 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-3xs hover:shadow-2xs transition-colors"
                               title="Manage custom paths"
                             >
-                              <ListPlus className="h-3.5 w-3.5 text-slate-505" /> Manage Custom Pathways
+                              <ListPlus className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 shrink-0" /> Manage Custom Pathways
                             </button>
                           </div>
                         ) : (
                           <div className="flex flex-col gap-3">
                             <div>
-                              <label className="text-[10px] uppercase font-bold tracking-wider text-slate-455 block mb-1 font-mono">Choose Matched Job Opportunity</label>
+                              <label className="text-[9.5px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400 block mb-1.5 font-mono">Choose Matched Job Opportunity</label>
                               <select
                                 value={targetJobId}
                                 onChange={(e) => {
@@ -805,7 +840,7 @@ ${tailoredCV.milestones.map(m => `
                                     setCustomJobText('');
                                   }
                                 }}
-                                className="w-full max-w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 text-slate-855 focus:outline-none focus:border-blue-500 cursor-pointer truncate"
+                                className="w-full max-w-full text-xs bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-slate-855 dark:text-slate-200 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/10 cursor-pointer truncate font-medium transition-all"
                               >
                                 <option value="">-- Select Matched Job --</option>
                                 {cohortAnalysis?.matchedJobs.map(job => (
@@ -814,15 +849,15 @@ ${tailoredCV.milestones.map(m => `
                                 <option value="custom">✦ Paste Custom Job Description ✦</option>
                               </select>
                             </div>
-                            
+
                             {targetJobId === 'custom' && (
-                              <div>
-                                <label className="text-[10px] uppercase font-bold tracking-wider text-slate-455 block mb-1 font-mono">Pasted Job Requirements</label>
+                              <div className="flex flex-col gap-1.5">
+                                <label className="text-[9.5px] uppercase font-bold tracking-wider text-slate-550 dark:text-slate-400 block font-mono">Pasted Job Requirements</label>
                                 <textarea
                                   placeholder="Paste the job description or requirements here to dynamically adapt the CV..."
                                   value={customJobText}
                                   onChange={(e) => setCustomJobText(e.target.value)}
-                                  className="w-full h-24 text-[10.5px] bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 text-slate-800 focus:outline-none focus:border-blue-500 resize-none font-sans"
+                                  className="w-full h-24 text-[11px] bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/10 resize-none font-sans transition-all"
                                 />
                               </div>
                             )}
@@ -830,27 +865,26 @@ ${tailoredCV.milestones.map(m => `
                         )}
 
                         {/* Resume Actions */}
-                        <div className="flex flex-col gap-2 mt-1 pt-3 border-t border-slate-100">
+                        <div className="flex flex-col gap-2 mt-1 pt-3 border-t border-slate-150 dark:border-slate-850">
                           <button
                             type="button"
                             onClick={() => handleOpenMilestoneEditor(null)}
-                            className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-xs transition-colors"
+                            className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-sm hover:shadow-md active:scale-99 transition-all"
                           >
                             <Plus className="h-4 w-4" /> Add Milestone Node
                           </button>
-                          
+
                           <button
                             type="button"
                             onClick={() => handleOpenMilestoneEditor(candidateNodes[0]?.id || null)}
-                            className="w-full py-2 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            className="w-full py-2.5 bg-slate-50/50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-850 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs hover:shadow-xs transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                             disabled={candidateNodes.length === 0}
                           >
-                            <Edit3 className="h-3.5 w-3.5 text-slate-505" /> Edit Milestones Timeline
+                            <Edit3 className="h-3.5 w-3.5 text-slate-450 dark:text-slate-500 shrink-0" /> Edit Milestones Timeline
                           </button>
                         </div>
-
                       </CardContent>
-                            </Card>
+                    </Card>
 
                     {/* Resume Version Timeline */}
                     <Card className="border-slate-200 shadow-xs relative overflow-hidden">
@@ -862,12 +896,12 @@ ${tailoredCV.milestones.map(m => `
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="flex flex-col gap-4 pt-4">
-                        
+
                         {/* Upload Trigger */}
                         {!isUploading && !pendingParsedData ? (
                           <div className="border-2 border-dashed border-slate-200 rounded-xl p-4 text-center bg-slate-55/50 hover:bg-slate-50 transition-colors flex flex-col items-center gap-2 relative group cursor-pointer">
-                            <input 
-                              type="file" 
+                            <input
+                              type="file"
                               accept=".pdf,.txt,.docx"
                               className="absolute inset-0 opacity-0 cursor-pointer"
                               onChange={handleDashboardFileChange}
@@ -887,7 +921,7 @@ ${tailoredCV.milestones.map(m => `
                               <span>{uploadProgress}%</span>
                             </div>
                             <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden">
-                              <div 
+                              <div
                                 className="h-full bg-gradient-to-r from-blue-600 to-teal-500 transition-all duration-350"
                                 style={{ width: `${uploadProgress}%` }}
                               />
@@ -935,14 +969,14 @@ ${tailoredCV.milestones.map(m => `
                               try {
                                 const parsed = JSON.parse(userProfile.marketAnalysis || '{}');
                                 activeSummary = parsed.summary || '';
-                              } catch (e) {}
+                              } catch (e) { }
 
                               // Parse version summary
                               let verSummary = '';
                               try {
                                 const parsed = JSON.parse(ver.marketAnalysis || '{}');
                                 verSummary = parsed.summary || '';
-                              } catch (e) {}
+                              } catch (e) { }
 
                               if (activeSummary !== verSummary) return false;
 
@@ -973,9 +1007,8 @@ ${tailoredCV.milestones.map(m => `
                             return profileVersions.map((ver, idx) => {
                               const isActive = activeVer ? ver.id === activeVer.id : false;
                               return (
-                                <div key={ver.id || idx} className={`p-2.5 rounded-lg border text-[10px] flex items-center justify-between gap-3 transition-colors ${
-                                  isActive ? 'bg-teal-50/10 border-teal-250 font-bold' : 'bg-slate-50/40 border-slate-200 hover:border-slate-300'
-                                }`}>
+                                <div key={ver.id || idx} className={`p-2.5 rounded-lg border text-[10px] flex items-center justify-between gap-3 transition-colors ${isActive ? 'bg-teal-50/10 border-teal-250 font-bold' : 'bg-slate-50/40 border-slate-200 hover:border-slate-300'
+                                  }`}>
                                   <div className="flex flex-col gap-0.5 min-w-0 flex-1">
                                     <div className="flex items-center gap-1.5 flex-wrap">
                                       <span className="font-extrabold text-slate-800">V{ver.versionNumber}</span>
@@ -1009,7 +1042,7 @@ ${tailoredCV.milestones.map(m => `
 
                   {/* Column 2: Document Canvas (Center Panel) */}
                   <div className="xl:col-span-6 lg:col-span-8 flex flex-col gap-4 order-2">
-                    
+
                     {/* CV Options Header */}
                     <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-2xs">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -1033,13 +1066,12 @@ ${tailoredCV.milestones.map(m => `
                           type="button"
                           onClick={triggerOptimizationSimulation}
                           disabled={isOptimizing}
-                          className={`px-4 py-2 text-xs font-bold rounded-xl border flex items-center gap-1.5 transition-all duration-350 cursor-pointer shadow-md ${
-                            isOptimizing 
+                          className={`px-4 py-2 text-xs font-bold rounded-xl border flex items-center gap-1.5 transition-all duration-350 cursor-pointer shadow-md ${isOptimizing
                               ? 'bg-blue-50 border-blue-200 text-blue-700 animate-pulse'
                               : needsOptimization
                                 ? 'bg-blue-600 hover:bg-blue-700 text-white border-blue-700 hover:shadow-lg scale-[1.02] ring-2 ring-blue-500/20'
                                 : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'
-                          }`}
+                            }`}
                         >
                           <Sparkles className={`h-3.5 w-3.5 ${isOptimizing || needsOptimization ? 'text-amber-500' : 'text-slate-400'}`} />
                           {isOptimizing ? 'AI Tailoring Running...' : needsOptimization ? '✦ Optimize Resume' : 'Resume Tailored'}
@@ -1223,7 +1255,7 @@ ${tailoredCV.milestones.map(m => `
         <span>Southeast Asia</span>
       </div>
     </div>
-    <div class="target-tag">${activeCvTarget} &nbsp;●&nbsp; Live Optimization Active</div>
+    <div class="target-tag">${activeCvTarget}</div>
   </div>
 
   <div class="section">
@@ -1284,7 +1316,7 @@ ${tailoredCV.milestones.map(m => `
 
                     {/* Premium Styled Resume Canvas */}
                     <div id="printable-resume-canvas" className="bg-white border border-slate-250/90 shadow-xl rounded-xl p-8 md:p-10 font-sans text-slate-800 leading-relaxed max-w-[21cm] min-h-[29.7cm] relative overflow-hidden">
-                      
+
                       {/* SCANNING LASER EFFECT */}
                       {isOptimizing && optimizationStage === 'analyzing' && (
                         <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-teal-500 to-transparent blur-[1px] opacity-90 animate-scan pointer-events-none z-10" />
@@ -1307,15 +1339,11 @@ ${tailoredCV.milestones.map(m => `
                             </span>
                           </div>
                         </div>
-                        
+
                         {/* Target Title Tag */}
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-bold text-blue-650 uppercase tracking-widest font-mono">
                             {activeCvTarget}
-                          </span>
-                          <span className="h-1.5 w-1.5 rounded-full bg-teal-500 animate-pulse" />
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">
-                            Live Optimization Active
                           </span>
                         </div>
                       </div>
@@ -1384,7 +1412,7 @@ ${tailoredCV.milestones.map(m => `
                           <div className="flex flex-col gap-5">
                             {displayedMilestones.map((m) => (
                               <div key={m.id} className="flex flex-col gap-1.5 group relative">
-                                
+
                                 {/* Edit Milestone overlay button for great UX */}
                                 <button
                                   type="button"
@@ -1404,7 +1432,7 @@ ${tailoredCV.milestones.map(m => `
                                     {m.startDate} – {m.endDate}
                                   </span>
                                 </div>
-                                
+
                                 {/* Company and Type metadata */}
                                 <div className="flex items-center gap-2 text-[10px] text-slate-550 font-medium font-mono">
                                   <span className="text-slate-800 uppercase font-extrabold">{m.organization}</span>
@@ -1438,11 +1466,10 @@ ${tailoredCV.milestones.map(m => `
                                     return (
                                       <span
                                         key={s.name}
-                                        className={`text-[8.5px] font-semibold px-2 py-0.2 rounded font-mono ${
-                                          isPrereq
+                                        className={`text-[8.5px] font-semibold px-2 py-0.2 rounded font-mono ${isPrereq
                                             ? 'bg-blue-50 text-blue-700 border border-blue-150'
                                             : 'bg-slate-50 text-slate-500 border border-slate-200/80'
-                                        }`}
+                                          }`}
                                       >
                                         {s.name}
                                       </span>
@@ -1468,11 +1495,10 @@ ${tailoredCV.milestones.map(m => `
                             return (
                               <span
                                 key={sk}
-                                className={`text-[10px] font-bold px-2.5 py-0.5 rounded-lg border transition-all ${
-                                  isPrereq
+                                className={`text-[10px] font-bold px-2.5 py-0.5 rounded-lg border transition-all ${isPrereq
                                     ? 'bg-blue-600 text-white border-transparent shadow-xs'
                                     : 'bg-slate-50 text-slate-600 border-slate-200'
-                                }`}
+                                  }`}
                               >
                                 {sk}
                               </span>
@@ -1495,30 +1521,52 @@ ${tailoredCV.milestones.map(m => `
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="flex flex-col gap-4 pt-4">
-                        
-                        {/* Score Metric Row */}
-                        <div className="flex items-center gap-4 bg-slate-50/50 p-3 rounded-xl border border-slate-150">
-                          {/* Radial Matching Score Gauge */}
-                          <div className="relative h-20 w-20 flex items-center justify-center shrink-0">
-                            <svg className="w-full h-full transform -rotate-90">
-                              <circle cx="40" cy="40" r="34" stroke="#f1f5f9" strokeWidth="6.5" fill="transparent" />
-                              <circle cx="40" cy="40" r="34" stroke={simulatedScore >= 80 ? '#10b981' : simulatedScore >= 50 ? '#f59e0b' : '#ef4444'} strokeWidth="6.5" fill="transparent"
-                                strokeDasharray={2 * Math.PI * 34}
-                                strokeDashoffset={2 * Math.PI * 34 * (1 - simulatedScore / 100)}
-                                className="transition-all duration-500 ease-out"
-                              />
-                            </svg>
-                            <div className="absolute flex flex-col items-center">
-                              <span className="text-base font-black text-slate-800 font-mono leading-none">{simulatedScore}%</span>
-                              <span className="text-[7.5px] font-bold text-slate-455 mt-1 uppercase tracking-wider font-mono">Match</span>
+
+                        {/* ATS Score Metric Row */}
+                        <div className="flex flex-col gap-3 bg-slate-50/50 dark:bg-slate-900/30 p-4 rounded-xl border border-slate-150 dark:border-slate-850">
+                          <div className="flex items-center gap-4">
+                            {/* Radial Matching Score Gauge */}
+                            <div className="relative h-16 w-16 flex items-center justify-center shrink-0">
+                              <svg className="w-full h-full transform -rotate-90">
+                                <circle cx="32" cy="32" r="27" stroke="#f1f5f9" strokeWidth="5" fill="transparent" className="dark:stroke-slate-800" />
+                                <circle cx="32" cy="32" r="27" stroke={simulatedScore >= 80 ? '#10b981' : simulatedScore >= 50 ? '#f59e0b' : '#ef4444'} strokeWidth="5" fill="transparent"
+                                  strokeDasharray={2 * Math.PI * 27}
+                                  strokeDashoffset={2 * Math.PI * 27 * (1 - simulatedScore / 100)}
+                                  className="transition-all duration-500 ease-out"
+                                />
+                              </svg>
+                              <div className="absolute flex flex-col items-center">
+                                <span className="text-sm font-black text-slate-800 dark:text-slate-100 font-mono leading-none">{simulatedScore}%</span>
+                                <span className="text-[7px] font-bold text-slate-455 dark:text-slate-500 mt-0.5 uppercase tracking-wider font-mono">ATS</span>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-col gap-0.5">
+                              <h4 className="text-xs font-bold text-slate-850 dark:text-slate-150">ATS Compatibility Score</h4>
+                              <p className="text-[10px] text-slate-500 dark:text-slate-450 leading-normal font-medium">
+                                Calculated using the system's Trajectory Similarity Matching Index (TSMI).
+                              </p>
                             </div>
                           </div>
 
-                          <div className="flex flex-col gap-0.5">
-                            <h4 className="text-xs font-bold text-slate-805">Resume Relevance Index</h4>
-                            <p className="text-[10px] text-slate-500 leading-normal">
-                              Aligns the chronological achievements of your CV dynamically to fit the prerequisites of the target intent.
-                            </p>
+                          {/* Transparent Mathematical Breakdown */}
+                          <div className="border-t border-slate-150 dark:border-slate-800 pt-2 flex flex-col gap-1.5 text-[9.5px] font-mono text-slate-550 dark:text-slate-400">
+                            <div className="flex justify-between">
+                              <span>Matched Weight (Σ w_m):</span>
+                              <span className="font-extrabold text-emerald-600 dark:text-emerald-400">
+                                {tailoredCV.matchedKeywords.reduce((sum, s) => sum + (1 + (SKILL_DAG[s]?.rank ?? 0)), 0)} pts
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Missing Weight (Σ w_u):</span>
+                              <span className="font-extrabold text-amber-600 dark:text-amber-500">
+                                {tailoredCV.missingKeywords.reduce((sum, s) => sum + (1 + (SKILL_DAG[s]?.rank ?? 0)), 0)} pts
+                              </span>
+                            </div>
+                            <div className="flex justify-between border-t border-dashed border-slate-200 dark:border-slate-800 pt-1 font-bold text-[10px] text-slate-700 dark:text-slate-300">
+                              <span>Weighted TSMI Score:</span>
+                              <span>{simulatedScore}%</span>
+                            </div>
                           </div>
                         </div>
 
@@ -1582,7 +1630,7 @@ ${tailoredCV.milestones.map(m => `
 
                         {/* Content */}
                         <div className="p-5 flex-1 overflow-y-auto flex flex-col gap-4 custom-scrollbar">
-                          
+
                           {/* List of current paths */}
                           <div>
                             <span className="text-[9px] uppercase font-bold tracking-wider text-slate-450 block mb-2 font-mono">Current Career Paths</span>
@@ -1611,7 +1659,7 @@ ${tailoredCV.milestones.map(m => `
                           {/* Path Creator Form */}
                           <div className="border-t border-slate-100 pt-4 flex flex-col gap-3">
                             <span className="text-[10px] uppercase font-bold tracking-wider text-slate-800 block font-mono">Create New Target Trajectory</span>
-                            
+
                             <div>
                               <label className="text-[9px] font-bold text-slate-500 block mb-1">Path Title Name</label>
                               <input
@@ -1714,7 +1762,7 @@ ${tailoredCV.milestones.map(m => `
 
                         {/* Form Body */}
                         <div className="flex flex-col gap-4 flex-1">
-                          
+
                           {/* Role Title */}
                           <div>
                             <label className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block mb-1 font-mono">Role Title</label>
@@ -1888,31 +1936,68 @@ ${tailoredCV.milestones.map(m => `
 
                         {/* Content Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 overflow-y-auto custom-scrollbar flex-1">
-                          
+
                           {/* Left Column: Metrics & Controls */}
                           <div className="flex flex-col gap-5">
-                            
+
                             {/* Score Dial and Details */}
-                            <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-200 flex items-center gap-6">
-                              <div className="relative h-24 w-24 flex items-center justify-center shrink-0 bg-white rounded-full shadow-inner border border-slate-100">
-                                <svg className="w-full h-full transform -rotate-90">
-                                  <circle cx="48" cy="48" r="41" stroke="#f1f5f9" strokeWidth="7" fill="transparent" />
-                                  <circle cx="48" cy="48" r="41" stroke={simulatedScore >= 80 ? '#10b981' : simulatedScore >= 50 ? '#f59e0b' : '#ef4444'} strokeWidth="7" fill="transparent"
-                                    strokeDasharray={2 * Math.PI * 41}
-                                    strokeDashoffset={2 * Math.PI * 41 * (1 - simulatedScore / 100)}
-                                    className="transition-all duration-500 ease-out"
-                                  />
-                                </svg>
-                                <div className="absolute flex flex-col items-center">
-                                  <span className="text-xl font-black text-slate-800 font-mono leading-none">{simulatedScore}%</span>
-                                  <span className="text-[8px] font-bold text-slate-455 mt-1 uppercase tracking-wider font-mono">Match</span>
+                            <div className="bg-slate-50/50 dark:bg-slate-900/30 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col gap-4">
+                              <div className="flex items-center gap-6">
+                                <div className="relative h-24 w-24 flex items-center justify-center shrink-0 bg-white dark:bg-slate-800 rounded-full shadow-inner border border-slate-100 dark:border-slate-700">
+                                  <svg className="w-full h-full transform -rotate-90">
+                                    <circle cx="48" cy="48" r="41" stroke="#f1f5f9" strokeWidth="7" fill="transparent" className="dark:stroke-slate-900" />
+                                    <circle cx="48" cy="48" r="41" stroke={simulatedScore >= 80 ? '#10b981' : simulatedScore >= 50 ? '#f59e0b' : '#ef4444'} strokeWidth="7" fill="transparent"
+                                      strokeDasharray={2 * Math.PI * 41}
+                                      strokeDashoffset={2 * Math.PI * 41 * (1 - simulatedScore / 100)}
+                                      className="transition-all duration-500 ease-out"
+                                    />
+                                  </svg>
+                                  <div className="absolute flex flex-col items-center">
+                                    <span className="text-xl font-black text-slate-800 dark:text-slate-100 font-mono leading-none">{simulatedScore}%</span>
+                                    <span className="text-[8px] font-bold text-slate-455 dark:text-slate-500 mt-1 uppercase tracking-wider font-mono">ATS Match</span>
+                                  </div>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  <h4 className="text-sm font-bold text-slate-850 dark:text-white font-extrabold">ATS Compatibility Index</h4>
+                                  <p className="text-xs text-slate-550 dark:text-slate-400 leading-normal font-medium">
+                                    Assesses your resume's verified skills against the core dependencies and prerequisites for <strong>{activeCvTarget}</strong> using the Trajectory Similarity Matching Index (TSMI).
+                                  </p>
                                 </div>
                               </div>
-                              <div className="flex flex-col gap-1">
-                                <h4 className="text-sm font-bold text-slate-800 font-extrabold">Relevance Index Details</h4>
-                                <p className="text-xs text-slate-550 leading-normal">
-                                  Your resume was assessed against the core skills requirements, node prerequisites, and tech demand trends for <strong>{activeCvTarget}</strong>.
-                                </p>
+
+                              {/* TSMI Formula and Mathematical Breakdown */}
+                              <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-855 rounded-xl p-4 flex flex-col gap-3 font-mono text-xs text-slate-700 dark:text-slate-300">
+                                <div className="text-center font-bold text-slate-850 dark:text-white border-b border-slate-150 dark:border-slate-800 pb-2">
+                                  Trajectory Similarity Matching Index (TSMI) Formula
+                                </div>
+                                <div className="flex justify-center py-2 text-sm font-extrabold text-blue-650 dark:text-blue-400">
+                                  TSMI = [ &Sigma; w_m / (&Sigma; w_m + &Sigma; w_u) ] &times; 100%
+                                </div>
+                                <div className="text-[10px] text-slate-500 dark:text-slate-500 text-center -mt-1 mb-1 leading-normal font-sans">
+                                  Where w_i = 1 + rank_i is the depth weight of the skill in the Trajectory Knowledge Graph (rank 0 to 3).
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 text-[11px] border-t border-slate-150 dark:border-slate-800 pt-2">
+                                  <div className="flex flex-col">
+                                    <span className="text-slate-455 dark:text-slate-500 uppercase text-[9px] font-bold">Matched Weight (&Sigma; w_m)</span>
+                                    <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm mt-0.5">
+                                      {tailoredCV.matchedKeywords.reduce((sum, s) => sum + (1 + (SKILL_DAG[s]?.rank ?? 0)), 0)} pts
+                                    </span>
+                                    <span className="text-[10px] text-slate-500 dark:text-slate-450 truncate mt-0.5">{tailoredCV.matchedKeywords.length} matched skills</span>
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <span className="text-slate-455 dark:text-slate-500 uppercase text-[9px] font-bold">Unmet Weight (&Sigma; w_u)</span>
+                                    <span className="font-extrabold text-amber-600 dark:text-amber-500 text-sm mt-0.5">
+                                      {tailoredCV.missingKeywords.reduce((sum, s) => sum + (1 + (SKILL_DAG[s]?.rank ?? 0)), 0)} pts
+                                    </span>
+                                    <span className="text-[10px] text-slate-500 dark:text-slate-455 truncate mt-0.5">{tailoredCV.missingKeywords.length} missing prerequisites</span>
+                                  </div>
+                                </div>
+                                <div className="border-t border-slate-150 dark:border-slate-800 pt-2.5 flex items-center justify-between text-xs font-bold text-slate-850 dark:text-white">
+                                  <span>TSMI Weighted Calculation:</span>
+                                  <span>
+                                    {tailoredCV.matchedKeywords.reduce((sum, s) => sum + (1 + (SKILL_DAG[s]?.rank ?? 0)), 0)} / ({tailoredCV.matchedKeywords.reduce((sum, s) => sum + (1 + (SKILL_DAG[s]?.rank ?? 0)), 0)} + {tailoredCV.missingKeywords.reduce((sum, s) => sum + (1 + (SKILL_DAG[s]?.rank ?? 0)), 0)}) = {simulatedScore}%
+                                  </span>
+                                </div>
                               </div>
                             </div>
 
@@ -1928,83 +2013,15 @@ ${tailoredCV.milestones.map(m => `
                               />
                             </div>
 
-                            {/* Alignment Checklist */}
-                            <div className="flex flex-col gap-2.5 bg-slate-50/50 p-4 rounded-xl border border-slate-200">
-                              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block font-mono">Agent Alignment Progress</span>
-                              <div className="flex flex-col gap-2.5 text-xs font-semibold text-slate-700">
-                                <div className="flex items-center justify-between">
-                                  <span className="flex items-center gap-2">
-                                    {optimizationStage === 'analyzing' ? (
-                                      <RefreshCw className="h-3.5 w-3.5 text-blue-500 animate-spin" />
-                                    ) : optimizationStage !== 'idle' ? (
-                                      <Check className="h-3.5 w-3.5 text-emerald-500 font-extrabold" />
-                                    ) : (
-                                      <span className="h-2 w-2 rounded-full bg-slate-300 ml-1 mr-0.5" />
-                                    )}
-                                    1. Scan TKG prerequisites
-                                  </span>
-                                  <span className="text-[9px] font-mono text-slate-450 uppercase">
-                                    {optimizationStage === 'analyzing' ? 'Running' : optimizationStage !== 'idle' ? 'Completed' : 'Pending'}
-                                  </span>
-                                </div>
-
-                                <div className="flex items-center justify-between">
-                                  <span className="flex items-center gap-2">
-                                    {optimizationStage === 'tailoring' ? (
-                                      <RefreshCw className="h-3.5 w-3.5 text-blue-500 animate-spin" />
-                                    ) : optimizationStage === 'finishing' ? (
-                                      <Check className="h-3.5 w-3.5 text-emerald-500 font-extrabold" />
-                                    ) : (
-                                      <span className="h-2 w-2 rounded-full bg-slate-300 ml-1 mr-0.5" />
-                                    )}
-                                    2. Recontextualize Achievements
-                                  </span>
-                                  <span className="text-[9px] font-mono text-slate-450 uppercase">
-                                    {optimizationStage === 'tailoring' ? 'Rewriting' : optimizationStage === 'finishing' ? 'Completed' : 'Pending'}
-                                  </span>
-                                </div>
-
-                                <div className="flex items-center justify-between">
-                                  <span className="flex items-center gap-2">
-                                    {optimizationStage === 'tailoring' ? (
-                                      <RefreshCw className="h-3.5 w-3.5 text-blue-500 animate-spin" />
-                                    ) : optimizationStage === 'finishing' ? (
-                                      <Check className="h-3.5 w-3.5 text-emerald-500 font-extrabold" />
-                                    ) : (
-                                      <span className="h-2 w-2 rounded-full bg-slate-300 ml-1 mr-0.5" />
-                                    )}
-                                    3. Live Type Adaptations
-                                  </span>
-                                  <span className="text-[9px] font-mono text-slate-455 uppercase">
-                                    {optimizationStage === 'tailoring' ? 'Typing' : optimizationStage === 'finishing' ? 'Completed' : 'Pending'}
-                                  </span>
-                                </div>
-
-                                <div className="flex items-center justify-between">
-                                  <span className="flex items-center gap-2">
-                                    {optimizationStage === 'finishing' ? (
-                                      <Check className="h-3.5 w-3.5 text-emerald-500 font-extrabold" />
-                                    ) : (
-                                      <span className="h-2 w-2 rounded-full bg-slate-300 ml-1 mr-0.5" />
-                                    )}
-                                    4. Commit Tailored Version to DB
-                                  </span>
-                                  <span className="text-[9px] font-mono text-slate-455 uppercase">
-                                    {optimizationStage === 'finishing' ? 'Committed' : 'Pending'}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-
                           </div>
 
                           {/* Right Column: Keyword Audit & Live Logs */}
                           <div className="flex flex-col gap-5">
-                            
+
                             {/* Match Audit Log */}
                             <div className="flex flex-col gap-2.5 bg-slate-50/50 p-4 rounded-xl border border-slate-200">
                               <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block font-mono">Keyword Match Audit</span>
-                              
+
                               {/* Matched Keywords */}
                               {tailoredCV.matchedKeywords.length > 0 && (
                                 <div className="flex flex-col gap-1.5">
@@ -2029,7 +2046,7 @@ ${tailoredCV.milestones.map(m => `
                                       <button
                                         key={sk}
                                         type="button"
-                                        onClick={() => handleQuickAddSkill(sk)}
+                                        onClick={() => setPendingAddSkill(sk)}
                                         className="text-[10px] font-bold bg-white text-slate-505 border border-dashed border-slate-300 hover:border-teal-400 hover:text-teal-655 hover:bg-teal-50 px-2 py-1 rounded transition-all cursor-pointer flex items-center gap-1 shadow-3xs"
                                         title={`Add ${sk} to latest milestone`}
                                       >
@@ -2159,7 +2176,106 @@ ${tailoredCV.milestones.map(m => `
         )}
       </AnimatePresence>
 
-      <style dangerouslySetInnerHTML={{ __html: `
+      {/* Restoring Snapshot Loader Modal */}
+      <AnimatePresence>
+        {restoringId !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[200] flex items-center justify-center pointer-events-auto"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-2xl p-6 shadow-2xl flex flex-col items-center gap-4 max-w-sm text-center relative overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-500 to-indigo-500 animate-pulse-glow" />
+              <div className="h-12 w-12 rounded-full bg-teal-50 dark:bg-teal-950/30 border border-teal-100 dark:border-teal-900/50 flex items-center justify-center text-teal-600 dark:text-teal-400">
+                <History className="h-6 w-6 animate-spin" style={{ animationDuration: '3s' }} />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <span className="text-sm font-extrabold text-slate-850 dark:text-white">
+                  Restoring Profile Version
+                </span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Re-aligning your milestones, skills, and summary to snapshot <span className="font-bold text-teal-650 dark:text-teal-400">V{profileVersions.find(v => v.id === restoringId)?.versionNumber}</span>. Please wait a moment...
+                </span>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Ethical Skill Declaration & Verification Modal */}
+      <AnimatePresence>
+        {pendingAddSkill !== null && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-[200] p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col relative"
+            >
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-500 to-orange-500 animate-pulse-glow" />
+              
+              {/* Content */}
+              <div className="p-6 flex flex-col gap-4">
+                <div className="flex items-center gap-3 text-amber-600 dark:text-amber-400">
+                  <div className="h-10 w-10 rounded-full bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center shrink-0">
+                    <AlertCircle className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-sm font-extrabold text-slate-900 dark:text-white uppercase font-mono tracking-wider">
+                    Ethical Skill Declaration
+                  </h3>
+                </div>
+
+                <div className="flex flex-col gap-2.5 text-xs leading-relaxed text-slate-600 dark:text-slate-350">
+                  <p>
+                    You are claiming the skill <strong className="text-slate-850 dark:text-white text-sm">"{pendingAddSkill}"</strong> to align with the required keywords for <strong className="text-slate-850 dark:text-white">"{activeCvTarget}"</strong>.
+                  </p>
+                  <div className="bg-amber-50/50 dark:bg-amber-950/10 border border-amber-200 dark:border-amber-900/55 rounded-xl p-3.5 flex flex-col gap-1.5">
+                    <span className="text-[10px] font-bold text-amber-800 dark:text-amber-450 uppercase font-mono tracking-wide">⚠ Professional Integrity Warning</span>
+                    <p className="text-[10.5px] text-amber-800 dark:text-amber-400 leading-normal">
+                      To maintain ATS vetting credibility and interview integrity, you should only assert skills you possess. Claiming skills you do not have can lead to immediate disqualification during subsequent technical rounds.
+                    </p>
+                  </div>
+                  <p className="font-semibold text-slate-705 dark:text-slate-300">
+                    Do you verify that you possess this skill or equivalent foundational knowledge and wish to add it to your profile?
+                  </p>
+                </div>
+              </div>
+
+              {/* Footer Buttons */}
+              <div className="px-6 py-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-850 flex justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setPendingAddSkill(null)}
+                  className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-250 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-750 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (pendingAddSkill) {
+                      handleQuickAddSkill(pendingAddSkill);
+                      setPendingAddSkill(null);
+                    }
+                  }}
+                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg cursor-pointer shadow-xs transition-colors"
+                >
+                  Confirm & Claim Skill
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes scan {
           0% { top: 0%; opacity: 0; }
           10% { opacity: 0.8; }

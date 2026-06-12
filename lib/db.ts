@@ -51,6 +51,7 @@ export async function checkDatabaseConnection(): Promise<{ online: boolean; mess
           email VARCHAR(255) UNIQUE NOT NULL,
           password_hash VARCHAR(255) NOT NULL,
           target_role VARCHAR(255) NOT NULL DEFAULT 'PENDING_ONBOARDING',
+          is_premium BOOLEAN NOT NULL DEFAULT FALSE,
           reset_token VARCHAR(255),
           reset_token_expiry TIMESTAMP,
           market_analysis TEXT,
@@ -117,6 +118,21 @@ export async function checkDatabaseConnection(): Promise<{ online: boolean; mess
           status VARCHAR(50) NOT NULL DEFAULT 'applied',
           applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           UNIQUE(user_id, job_id)
+        )
+      `);
+    }
+
+    // Verify acquired_skills table exists
+    try {
+      await client.query('SELECT 1 FROM acquired_skills LIMIT 1');
+    } catch (tblError) {
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS acquired_skills (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          skill_name VARCHAR(255) NOT NULL,
+          acquired_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE(user_id, skill_name)
         )
       `);
     }

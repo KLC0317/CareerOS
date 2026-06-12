@@ -49,58 +49,92 @@ export async function POST(req: Request) {
     ];
 
     const promptText = `
-You are an expert ATS (Applicant Tracking System) parser and career trajectory planning system.
+You are a world-class ATS (Applicant Tracking System) resume parser, career strategist, and professional writing specialist. Your role is to extract, analyze, and professionally articulate a candidate's career history based solely on the information provided in their resume.
+
 Analyze the provided resume and perform the following tasks:
-1. Extract all milestones (academic degrees, employment history, independent research/sabbaticals).
-2. Recommend THREE distinct target career roles/trajectories (e.g. "AI Architect", "Frontend Architect", "Lead Platform Engineer", "DevOps Specialist", "Engineering Manager", "Product Manager", etc.) based on their experience and skills, taking into account their location/market.
+1. Extract ALL milestones: academic degrees, employment history, internships, and independent research/sabbaticals — in reverse chronological order (most recent first).
+2. Recommend THREE distinct target career roles/trajectories (e.g. "AI Research Engineer", "Frontend Architect", "Lead Platform Engineer", "DevOps Specialist", "Engineering Manager", "Product Manager") based on the candidate's actual experience, skills, and geographical location/market context.
 3. Compile a list of all detected skills matching the allowed skills dictionary.
-4. Extract the candidate's geographical location (or infer it from listed entities like companies and universities if not explicitly stated) and analyze the local technology market demand for the recommended roles in that geographical area.
+4. Extract the candidate's geographical location (or infer it from company/university entities) and analyze the regional technology market demand for the recommended roles in that area.
 
-CRITICAL DIRECTIVE FOR INTEGRITY & HONESTY:
-You MUST ONLY extract what is explicitly present in the resume. You must never assume the user has skills, experience, or tools that are not directly mentioned in their resume text. For example, if the resume does not say "Next.js" or "NextJS", you can never assume or list that the user knows Next.js. You must maintain 100% honesty and integrity, extracting the exact words, milestones, roles, and organizations as they are written in the resume. Do not fabricate, summarize out of context, or add any achievements or technologies.
+═══════════════════════════════════════════════════════════════
+INTEGRITY & HONESTY — ABSOLUTE REQUIREMENT:
+═══════════════════════════════════════════════════════════════
+You MUST ONLY extract and describe what is EXPLICITLY present in the resume text.
+- Never assume, invent, or fabricate skills, tools, frameworks, or responsibilities.
+- Never add technologies not mentioned (e.g., do NOT list "Next.js" if the resume doesn't explicitly state it).
+- Preserve exact organization names, role titles, and dates as written.
+- All descriptions must be grounded 100% in real, verifiable content from the resume.
 
-You MUST return a valid JSON object conforming exactly to this TypeScript schema:
+═══════════════════════════════════════════════════════════════
+PROFESSIONAL RESUME WRITING STANDARDS — MANDATORY:
+═══════════════════════════════════════════════════════════════
+For EVERY employment and academic milestone node, the "description" field MUST:
+
+1. WORD COUNT: Contain a minimum of 55 and ideally 60–75 words. Never write short, sparse, or vague descriptions. If the resume provides limited detail, expand on the genuine responsibilities implied by the role title and organization context — but never fabricate.
+
+2. PROFESSIONAL LANGUAGE: Use sophisticated, industry-standard resume language. Use strong action verbs (e.g., "Spearheaded", "Architected", "Delivered", "Orchestrated", "Implemented", "Optimized", "Led", "Developed", "Designed", "Managed"). Avoid weak or generic phrasing like "worked on" or "helped with".
+
+3. REFLECT THE POSITION: Each description must reflect the seniority level and domain of the actual job title. A "Senior Engineer" description must sound distinctly more senior than a "Junior Developer". A "Bachelor's in Computer Science" description must reflect the academic curriculum and specialization.
+
+4. STRUCTURED NARRATIVE FORMAT: Write each description as a coherent, flowing professional narrative paragraph (no bullet symbols, no hyphens at the start, no markdown). The text should read naturally when printed on a professional resume document.
+
+5. SPECIFICITY: Where the resume mentions specific technologies, systems, metrics, or outcomes, incorporate them into the description to add authenticity and credibility. Generic descriptions without any specifics are NOT acceptable.
+
+6. ACHIEVEMENTS VS RESPONSIBILITIES: The description should balance both day-to-day responsibilities and notable achievements or outcomes where evident from the resume.
+
+EXAMPLE of an ACCEPTABLE 60-word description:
+"Architected and led the end-to-end development of a high-availability microservices platform serving over two million active users, leveraging Python and distributed systems design patterns. Collaborated cross-functionally with product, QA, and DevOps teams to accelerate delivery cycles by 35%. Established code review standards and mentored a team of five junior engineers, significantly improving codebase quality and team velocity."
+
+EXAMPLE of an UNACCEPTABLE (too short) description:
+"Worked on backend systems using Python. Helped the team deliver features."
+
+═══════════════════════════════════════════════════════════════
+JSON OUTPUT FORMAT — STRICTLY REQUIRED:
+═══════════════════════════════════════════════════════════════
+You MUST return a valid JSON object conforming EXACTLY to this TypeScript schema. Do not include any Markdown, code fences, or extra commentary. Return ONLY the raw JSON object.
+
 {
   "recommendedRole": "string (the primary/highest-match recommended career role/trajectory)",
   "recommendedRoles": [
     {
       "role": "string (recommended career role/trajectory)",
-      "justification": "string (brief justification why this pathway is optimal for the candidate given their background and regional context)"
+      "justification": "string (2–3 sentences justifying why this pathway is optimal for the candidate given their background, skills, and regional market context)"
     }
   ],
-  "detectedSkills": string[],
-  "summary": "string (original professional summary of the candidate if present in the resume, otherwise a synthesized summary of their overall profile)",
+  "detectedSkills": "string[] (skills matching the allowed dictionary only)",
+  "summary": "string (use the candidate's original professional summary if present in the resume; otherwise synthesize a 40–60 word factual summary from their extracted career history — do not fabricate)",
   "marketAnalysis": {
     "geo": "Detected city/country or inferred region",
-    "marketDemand": "Regional demand analysis, local market outlook, growth prospects, and tech hubs in that area for the primary recommended role",
-    "justification": "Why the primary recommended role is optimal given the background and geography"
+    "marketDemand": "2–3 sentence analysis of regional demand, local market outlook, growth prospects, and relevant tech hubs in that area for the primary recommended role",
+    "justification": "2–3 sentences explaining why the primary recommended role is optimal given the candidate's background and geography"
   },
   "nodes": [
     {
-      "role": "Job Title or Degree/Sabbatical Name",
-      "organization": "Company, Institution or Self-Directed organization",
-      "type": "employment" | "academic" | "sabbatical",
+      "role": "Exact Job Title or Degree Name as written in the resume",
+      "organization": "Exact Company, Institution, or Self-Directed organization name",
+      "type": "employment | academic | sabbatical",
       "startDate": "YYYY-MM",
-      "endDate": "YYYY-MM" or "Present",
-      "description": "Short explanation of achievements and tasks performed",
+      "endDate": "YYYY-MM or Present",
+      "description": "A 60-word minimum professional narrative paragraph describing actual responsibilities, accomplishments, technologies used, and key outcomes — grounded entirely in the resume content",
       "skills": [
         {
-          "name": "Skill name from dictionary",
-          "level": "Rank-1" | "Rank-2" | "Rank-3"
+          "name": "Skill name from the allowed dictionary (case-sensitive exact match)",
+          "level": "Rank-1 | Rank-2 | Rank-3"
         }
       ]
     }
   ]
 }
 
-Ensure the "recommendedRoles" array contains EXACTLY 3 distinct recommendations, sorted by relevance/match score.
-If no end date is present for a current job, set "endDate" to "Present".
-The "skills" array inside each milestone node should contain skills relevant to that milestone, and the "name" field MUST match one of the values in the Allowed Skills Dictionary below (case-sensitive).
+RULES:
+- "recommendedRoles" array MUST contain EXACTLY 3 items, sorted by relevance/match score descending.
+- If no end date is present for a current role, set "endDate" to "Present".
+- All skill names in "skills" arrays MUST exactly match an entry in the Allowed Skills Dictionary below (case-sensitive).
+- Nodes MUST be ordered most-recent first (reverse chronological).
 
-Dictionary of Allowed Skills:
+Allowed Skills Dictionary:
 ${JSON.stringify(allowedSkills)}
-
-Do not include any Markdown wrap blocks like \`\`\`json. Return only the raw JSON.
 `;
 
 

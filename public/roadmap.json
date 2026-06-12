@@ -1,0 +1,1567 @@
+{
+  "app_metadata": {
+    "target_framework": "Next.js",
+    "data_format": "flow_ready_nodes",
+    "ui_setup": {
+      "theme": "dark_mode_glassmorphism",
+      "node_styling": {
+        "border_radius": "lg",
+        "default_bg_color": "#1E293B",
+        "highlight_bg_color": "#3B82F6",
+        "text_color": "#F8FAFC"
+      },
+      "edge_styling": {
+        "type": "smoothstep",
+        "stroke_color": "#64748B",
+        "animated": true
+      }
+    }
+  },
+  "roadmaps": [
+    {
+      "id": "ux_design",
+      "title": "UX Design",
+      "related_roadmaps": [
+        "Design System Roadmap",
+        "Frontend Roadmap"
+      ],
+      "prerequisites": [],
+      "content": [
+        {
+          "branch": "Human Decision Making",
+          "topics": [
+            "Frameworks",
+            "BJ Fogg's Behavior Model",
+            "CREATE Action Funnel",
+            "Spectrum of Thinking Interventions",
+            "Dual Process Theory"
+          ],
+          "sub_branches": [
+            {
+              "title": "Buzzwords to lookout for",
+              "items": [
+                "Nudge Theory",
+                "Persuasive Technology",
+                "Behavioral Science",
+                "Behavioral Economics",
+                "Behavior Design"
+              ]
+            }
+          ]
+        },
+        {
+          "branch": "Behavior Change Strategies",
+          "topics": [
+            "Classifying Behavior",
+            "BJ Fogg's Behavior Grid"
+          ],
+          "sub_branches": [
+            {
+              "title": "Existing Behavior",
+              "items": [
+                "Defaulting",
+                "Help user Avoiding the Cue",
+                "Replace the Routine",
+                "Cheating",
+                "Make or Change Habits",
+                "Support Conscious Action"
+              ]
+            },
+            {
+              "title": "New Behavior",
+              "items": [
+                "Automate the Act of Repetition",
+                "Target Outcome",
+                "Target Actor",
+                "Clarify Action",
+                "Understanding the Product"
+              ]
+            },
+            {
+              "title": "Nir Eyal's Hook Model",
+              "items": [
+                "Cue Routine Reward Model",
+                "Create User Personas",
+                "Define Target Users"
+              ]
+            },
+            {
+              "title": "Conscious Interference",
+              "items": [
+                "Use Consciousness to Interfere",
+                "Mindfulness to Avoid Acting on the Cue",
+                "Crowd Out Old Habit with New Behavior"
+              ]
+            },
+            {
+              "title": "User Education",
+              "items": [
+                "Educate & Encourage User",
+                "Help User think about their Action"
+              ]
+            }
+          ]
+        },
+        {
+          "branch": "Conceptual Design",
+          "topics": [
+            "Create Product Backlog",
+            "User Stories",
+            "Things to lookout for"
+          ],
+          "sub_branches": [
+            {
+              "title": "Business Model",
+              "items": [
+                "Existing Business Model",
+                "Business Model Canvas",
+                "Lean Canvas",
+                "New Business Model",
+                "Business Model Inspirator",
+                "Competitor Analysis",
+                "Five Forces Analysis",
+                "SWOT Analysis"
+              ]
+            },
+            {
+              "title": "Deliverables",
+              "items": [
+                "Customer Experience Map by Mel Edwards",
+                "Simple Flowchart",
+                "Event-driven Process Chain Model (EPC)",
+                "Business Process Model & Notation (BPMN)"
+              ]
+            }
+          ]
+        },
+        {
+          "branch": "Prototyping",
+          "topics": [
+            "Figma",
+            "Adobe XD",
+            "Sketch",
+            "Balsamiq",
+            "Wireframing",
+            "Good Layout Rules"
+          ]
+        },
+        {
+          "branch": "UX Best Practices",
+          "sub_branches": [
+            {
+              "title": "Getting Users Attention",
+              "items": [
+                "Tell User what the Action is and ask for it",
+                "Clear the Page of Distractions",
+                "Make it Clear Where to Act"
+              ]
+            },
+            {
+              "title": "Getting Positive Intuitive Reaction",
+              "items": [
+                "Make UI Professional and Beautiful",
+                "Deploy Strong Authority on Subject",
+                "Be Authentic and Personal",
+                "Deploy Social Proof"
+              ]
+            },
+            {
+              "title": "UX Patterns",
+              "items": [
+                "When attention is fleeting and scarce",
+                "Call to Action",
+                "How-to-Tips",
+                "Status Reports",
+                "Reminders & Planning Prompts",
+                "with many chances to influence user",
+                "Behavior Change Games",
+                "Decision-Making Support",
+                "Gamification",
+                "Goal Trackers",
+                "Reminders",
+                "Social Sharing",
+                "Tutorials",
+                "Planners",
+                "Gather Lessons, Prioritize & Integrate"
+              ]
+            }
+          ]
+        },
+        {
+          "branch": "Measuring the Impact",
+          "topics": [
+            "Get a favorable Conscious Evaluation",
+            "Prime User-Relevant Associations",
+            "Avoid Direct Payments",
+            "Avoid Choice Overload",
+            "Avoid Cognitive Overload",
+            "Leverage Loss-Aversion",
+            "Use Peer Comparisons",
+            "Use Competition"
+          ],
+          "sub_branches": [
+            {
+              "title": "Testing",
+              "items": [
+                "Multivariate Testing",
+                "Incremental A/B Testing"
+              ]
+            },
+            {
+              "title": "Creating Urgency to Act Now",
+              "items": [
+                "Frame Text to Avoid Temporal Myopia",
+                "Remind of Prior Commitment to Act",
+                "Make Commitment to Friends",
+                "Make Reward Scarce"
+              ]
+            },
+            {
+              "title": "Make sure Users can do it Easily",
+              "items": [
+                "Elicit Implementation Intentions",
+                "Default Everything",
+                "Lessen the Burden of Action / Info",
+                "Deploy Peer Comparisons"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "technical_writer",
+      "title": "Technical Writer",
+      "related_roadmaps": [],
+      "prerequisites": [],
+      "content": [
+        {
+          "branch": "Introduction",
+          "topics": [
+            "Who is a Technical Writer?",
+            "What is Technical Writing?",
+            "Role of Technical Writers in Organizations",
+            "Forms of Technical Writing",
+            "Growth as a Technical Writer"
+          ]
+        },
+        {
+          "branch": "Required Skills",
+          "topics": [
+            "Technology Expertise",
+            "Language Proficiency",
+            "Written Communication Proficiency"
+          ]
+        },
+        {
+          "branch": "Best Practices",
+          "topics": [
+            "Story Telling",
+            "Subtle Selling",
+            "Content Structure",
+            "Call to Actions",
+            "References",
+            "Crafting Great Titles",
+            "Content Objectives & Intent",
+            "User Persona",
+            "Writing Style Guides",
+            "ICP & Buyer Persona",
+            "Buyer Journey & Content Funnel"
+          ]
+        },
+        {
+          "branch": "Tooling",
+          "topics": [
+            "Research Tools",
+            "Blogging Platforms",
+            "Publishing Tools",
+            "SEO Tools",
+            "Plagiarism Checker",
+            "Editing Tools",
+            "Git / Version Control",
+            "Markdown"
+          ]
+        },
+        {
+          "branch": "Types of Technical Content",
+          "topics": [
+            "Product Content",
+            "General Product Prose",
+            "How-to Guides",
+            "Help Content",
+            "Troubleshooting",
+            "Developer Support",
+            "Platform Support"
+          ],
+          "sub_branches": [
+            {
+              "title": "Developer Docs",
+              "items": [
+                "User Goals",
+                "User Docs",
+                "Developer Journey",
+                "Docs Structure"
+              ]
+            },
+            {
+              "title": "API Reference",
+              "items": [
+                "Docs Generation Tools",
+                "API Definitions"
+              ]
+            }
+          ]
+        },
+        {
+          "branch": "Content Research",
+          "topics": [
+            "Topic Score",
+            "Keyword Volume",
+            "Communities & Forums",
+            "Search Trends",
+            "Support Request Evaluation"
+          ]
+        },
+        {
+          "branch": "Technical Content Marketing",
+          "sub_branches": [
+            {
+              "title": "SEO",
+              "items": [
+                "SEO Keywords",
+                "Short-tail Keywords",
+                "Long-Tail Keywords",
+                "Backlinking",
+                "Content SEO"
+              ]
+            },
+            {
+              "title": "Content Funnel",
+              "items": [
+                "Top-funnel Content (Awareness Blog Posts, Research Reports)",
+                "Mid-funnel Content (Pillar Content, White-papers, eBook)",
+                "Bottom-funnel Content (Generic Gated Content, Comparative Posts, Tutorials)"
+              ]
+            }
+          ]
+        },
+        {
+          "branch": "Content Optimization",
+          "topics": [
+            "Link Shorteners / Tracking",
+            "Platform Tracking and Metrics",
+            "Conversion Tracking",
+            "Content Aging & Timelines",
+            "Content Analysis",
+            "Release Notes / Product Announcements",
+            "Customer Case-Studies",
+            "Technical Website Copy",
+            "Frequently Asked Questions"
+          ]
+        },
+        {
+          "branch": "Content Distribution",
+          "topics": [
+            "Canonical Link",
+            "OpenGraph Data",
+            "Content Distribution Channels",
+            "Content Distribution Amplification Strategies"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "game_developer",
+      "title": "Game Developer",
+      "related_roadmaps": [
+        "Backend",
+        "API Design"
+      ],
+      "prerequisites": [],
+      "content": [
+        {
+          "branch": "Client Side Development",
+          "sub_branches": [
+            {
+              "title": "Game Mathematics",
+              "items": [
+                "Linear Algebra (Vector, Matrix, Linear Transformation, Geometry, Affine Space, Affine Transformation, Projection, Perspective, Orthogonal)",
+                "Curve (Spline, Hermite, Bezier, Catmull-Rom)",
+                "Center of Mass",
+                "Moment of Inertia",
+                "Acceleration",
+                "Restitution",
+                "Angular Velocity",
+                "Buoyancy",
+                "Linear Velocity",
+                "Dynamics",
+                "Joints",
+                "Force",
+                "Friction"
+              ]
+            },
+            {
+              "title": "Game Engine",
+              "items": [
+                "Unity 3D",
+                "Unreal Engine",
+                "Native",
+                "Godot",
+                "Game Physics"
+              ]
+            },
+            {
+              "title": "Programming Languages",
+              "items": [
+                "C#",
+                "C/C++",
+                "Rust",
+                "Python",
+                "GDScript"
+              ]
+            },
+            {
+              "title": "Intersection & Collision",
+              "items": [
+                "SAT",
+                "GJK",
+                "EPA",
+                "Convex Hull",
+                "Convex Decomposition",
+                "Collision Detection",
+                "CCD",
+                "Narrow Phase",
+                "Broad Phase",
+                "Convex",
+                "Concave"
+              ]
+            },
+            {
+              "title": "Spatial Partitioning",
+              "items": [
+                "Bounding Volume (OBB, AABB, Stencil Shadow)",
+                "Sort & Sweep",
+                "DBVT",
+                "BVH"
+              ]
+            },
+            {
+              "title": "Computer Graphics",
+              "items": [
+                "Computer Animation",
+                "Color",
+                "Visual Perception",
+                "Tone Reproduction",
+                "Sampling",
+                "Shader (HLSL, GLSL, SPIR-V)",
+                "Rendering Equation",
+                "Mapping",
+                "Reflection",
+                "Texture (Diffuse, Bump, Specular, Parallax, Horizon)",
+                "Graphics API (DirectX, OpenGL, Vulkan, Metal, WebGL)",
+                "Lighting and Shadow",
+                "Shadow Map",
+                "Light Source (2D, Cube, Directional, Spot, Cascaded, Infinite, Point)",
+                "Visibility and Occlusion (Occluder, Culling, Clipping, Fog, Frustum, Polygon, Light, Polyhedron, Shadow)"
+              ]
+            },
+            {
+              "title": "Game AI",
+              "items": [
+                "Naive Bayes Classifier",
+                "Decision Learning",
+                "Reinforcements Learning",
+                "Decision Tree",
+                "Deep Learning",
+                "Artificial Neural Network",
+                "Decision Making (Decision Tree, State Machine, Behavior Tree, Fuzzy Logic, Markov System, Goal-Oriented Behavior)",
+                "Movement",
+                "Board Game (Minimax, AB Pruning, MCTS)"
+              ]
+            },
+            {
+              "title": "Advanced Rendering",
+              "items": [
+                "Physically-Based Rendering (Microsurface Scattering, Translucency & Transparency, Conservation of Energy, Metallicity)",
+                "Real-time Ray Tracing (DirectX Ray Tracing, Vulkan Ray Tracing, OptiX)"
+              ]
+            }
+          ]
+        },
+        {
+          "branch": "Server-Side Development",
+          "sub_branches": [
+            {
+              "title": "TCP vs UDP",
+              "items": [
+                "TCP (Checksum, Segment Structure, Operations, Max Segment Size, Window Scaling)",
+                "Vulnerability (Denial of Service, Connection Hijacking, Veto)",
+                "Congestion Control",
+                "Reliable Transmission",
+                "Flow Control",
+                "Data Transfer (Out-of-Band Data, Selective Ack., Error Detection)",
+                "UDP (Reliability, Datagram, Congestion Control, Checksum, Packet Structure)",
+                "Ordered vs Unordered",
+                "Heavy vs Lightweight",
+                "Packet vs Datagram",
+                "Reliable vs Unreliable",
+                "Streaming vs Broadcast"
+              ]
+            },
+            {
+              "title": "IP",
+              "items": [
+                "Byte Manipulation",
+                "Address Conversion",
+                "Descriptor"
+              ]
+            },
+            {
+              "title": "Programming Languages",
+              "items": [
+                "Java",
+                "C#",
+                "Python",
+                "C/C++",
+                "Erlang",
+                "JavaScript",
+                "Go"
+              ]
+            },
+            {
+              "title": "TCP/IP Core",
+              "items": [
+                "ARP",
+                "DNS",
+                "DHCP",
+                "IPv6",
+                "IPv4",
+                "TLS",
+                "Capability",
+                "Link Capacity",
+                "Transactions",
+                "Reliability",
+                "Security",
+                "Function"
+              ]
+            },
+            {
+              "title": "Socket Programming",
+              "items": [
+                "API (BSD Socket, Winsock)",
+                "Design Patterns (TDD, Dependency Injection, Dump Analysis, Functional Programming)"
+              ]
+            },
+            {
+              "title": "Serialization",
+              "items": [
+                "JSON",
+                "XML",
+                "Protobuf",
+                "TOML",
+                "YAML"
+              ]
+            },
+            {
+              "title": "Network Architecture",
+              "items": [
+                "Sharding",
+                "Fiber",
+                "Datagram Construction",
+                "IP Addressing",
+                "Routing"
+              ]
+            },
+            {
+              "title": "Multithreading",
+              "items": [
+                "Thread Local Storage",
+                "Windows",
+                "pthread",
+                "Synchronization (Condition Variable, Barrier, Future & Promises, Mutex, Semaphore, Channel, Coroutine, Spinlock)"
+              ]
+            },
+            {
+              "title": "Databases",
+              "items": [
+                "RDBMS (MySQL, PostgreSQL, MariaDB)",
+                "NoSQL (DynamoDB, MongoDB, Cassandra, Couchbase)",
+                "Key-Value (Redis, Memcached)",
+                "ORM",
+                "DAL"
+              ]
+            },
+            {
+              "title": "Network Communication",
+              "items": [
+                "REST",
+                "gRPC",
+                "RPC / REST",
+                "Cipher",
+                "SSL",
+                "Message Queues (Apache Kafka, RabbitMQ)"
+              ]
+            },
+            {
+              "title": "Update Process & Concurrency Models",
+              "items": [
+                "Thread Building Block (C++)",
+                "Concurrency (Java)",
+                "Asnc-await (C#)",
+                "goroutine (Go)",
+                "Determinism",
+                "Synchrony",
+                "OORP",
+                "FRP",
+                "Task-Based",
+                "Reactive Model",
+                "Reactive Approach",
+                "Actor Model (Akk.net (C#), Akka (Java))",
+                "Asynchronous",
+                "Reactor",
+                "Proactor",
+                "kqueue",
+                "epoll",
+                "Registered IO",
+                "WSA",
+                "Poll",
+                "select",
+                "IOCP",
+                "io_uring"
+              ]
+            },
+            {
+              "title": "Infrastructure & Cloud",
+              "items": [
+                "Serverless",
+                "Cloud (AWS, GCP, Azure)",
+                "Containerization (Docker, Docker Compose, Kubernetes)"
+              ]
+            },
+            {
+              "title": "Data & Machine Learning",
+              "items": [
+                "Data Clustering",
+                "Apache Spark",
+                "Cloud ML (Amazon ML, Azure ML)",
+                "Deep Learning (TensorFlow, Pytorch)"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mlops",
+      "title": "MLOps",
+      "related_roadmaps": [
+        "AI & Data Scientist",
+        "DevOps Roadmap",
+        "Backend Roadmap",
+        "Python Roadmap",
+        "Go Roadmap"
+      ],
+      "prerequisites": [],
+      "content": [
+        {
+          "branch": "Programming Fundamentals",
+          "topics": [
+            "Python",
+            "Go",
+            "Bash"
+          ]
+        },
+        {
+          "branch": "Version Control Systems",
+          "topics": [
+            "Git",
+            "GitHub"
+          ]
+        },
+        {
+          "branch": "Cloud Computing",
+          "topics": [
+            "AWS / Azure / GCP",
+            "Cloud-native ML Services"
+          ]
+        },
+        {
+          "branch": "Containerization",
+          "topics": [
+            "Docker",
+            "Kubernetes"
+          ]
+        },
+        {
+          "branch": "Machine Learning Fundamentals",
+          "topics": []
+        },
+        {
+          "branch": "Data Engineering Fundamentals",
+          "topics": [
+            "Airflow",
+            "Data Pipelines",
+            "Data Lakes & Warehouses",
+            "Data Ingestion Architecture",
+            "Spark",
+            "Kafka",
+            "Flink"
+          ]
+        },
+        {
+          "branch": "MLOps Principles",
+          "topics": []
+        },
+        {
+          "branch": "MLOps Components",
+          "topics": [
+            "Version Control",
+            "CI/CD",
+            "Orchestration",
+            "Experiment Tracking & Model Registry",
+            "Data Lineage & Feature Stores",
+            "Model Training & Serving",
+            "Monitoring & Observability"
+          ]
+        },
+        {
+          "branch": "Infrastructure as Code",
+          "topics": []
+        }
+      ]
+    },
+    {
+      "id": "product_manager",
+      "title": "Product Manager",
+      "related_roadmaps": [
+        "UX Design Roadmap",
+        "Data Analyst",
+        "Design System"
+      ],
+      "prerequisites": [],
+      "content": [
+        {
+          "branch": "Introduction",
+          "topics": [
+            "What is Product Management?",
+            "Product vs Project Management",
+            "Roles and Responsibilities",
+            "Key Skills"
+          ]
+        },
+        {
+          "branch": "Product Development Lifecycle",
+          "topics": [
+            "Introduction",
+            "Growth",
+            "Maturity",
+            "Decline"
+          ]
+        },
+        {
+          "branch": "Idea Generation",
+          "topics": [
+            "SCAMPER",
+            "Brainstorming Techniques",
+            "Mind Mapping",
+            "Brainwriting"
+          ]
+        },
+        {
+          "branch": "Product Identification",
+          "topics": [
+            "Iterative Process",
+            "Blue Ocean Strategy",
+            "Discovery",
+            "Selection",
+            "TRIZ (Theory of Inventive Problem Solving)",
+            "Validation",
+            "Execution",
+            "Problem Framing"
+          ]
+        },
+        {
+          "branch": "Market and User Research",
+          "topics": [
+            "User Personas",
+            "User Interviews",
+            "Surveys and Questionnaires",
+            "Ethnographic Research",
+            "Identifying Market Needs",
+            "Competitive Analysis",
+            "Emerging Market Trends"
+          ]
+        },
+        {
+          "branch": "Product Strategy",
+          "sub_branches": [
+            {
+              "title": "Defining & Communicating",
+              "items": [
+                "USP (Unique Selling Point)",
+                "Positioning Statement",
+                "Capabilities",
+                "Solved Constraints",
+                "Future Constraints",
+                "Value vs Features",
+                "Reference Materials",
+                "Narrative"
+              ]
+            },
+            {
+              "title": "Market Strategy",
+              "items": [
+                "Market Segmentation",
+                "Case Studies"
+              ]
+            },
+            {
+              "title": "Value Proposition",
+              "items": [
+                "Strategic Thinking",
+                "Competitive Strategy",
+                "Five Forces Analysis",
+                "Competitive Advantage"
+              ]
+            },
+            {
+              "title": "Product Planning",
+              "items": [
+                "Defining Goals",
+                "Defining Value Proposition",
+                "Value Proposition Canvas"
+              ]
+            },
+            {
+              "title": "Strategic Partners",
+              "items": [
+                "Identify Partners",
+                "Managing Partnerships"
+              ]
+            }
+          ]
+        },
+        {
+          "branch": "Product Roadmap",
+          "topics": [
+            "Goal Types (Target, Baseline, Trend, Timeframe)",
+            "Writing PRDs (User Stories, Job Stories, Product Requirements)",
+            "Prioritising Features",
+            "Creating a Roadmap",
+            "Continuous Roadmapping",
+            "Prioritization Techniques",
+            "Grooming Sessions",
+            "User Story Mapping",
+            "Outcome-Based Roadmaps",
+            "Communicating the Roadmap",
+            "Backlog Management"
+          ]
+        },
+        {
+          "branch": "Product Design",
+          "topics": [
+            "UX/UI Design",
+            "Service Design",
+            "Interaction Design",
+            "Principles of UX Design",
+            "Wireframing and Prototyping",
+            "Design Thinking",
+            "Usability Testing (User Testing, A/B Testing, Remote User Testing)"
+          ]
+        },
+        {
+          "branch": "Development and Launch",
+          "topics": [
+            "Agile Methodology (Scrum Basics, Kanban Basics, Sprint Planning, Daily Standups, Retrospectives)",
+            "Working with Engineering Teams",
+            "Minimum Viable Product (MVP)",
+            "Release Strategies (Feature Toggles, Phased Rollouts, Dark Launches)",
+            "Go-to-Market Strategy (Launch Planning, Marketing Strategies, Growth Hacking)"
+          ]
+        },
+        {
+          "branch": "Product Metrics",
+          "topics": [
+            "Key Product Metrics (DAU, MAU, Conversion Rate, Retention Rate, Churn Rate, LTV, CAC, North Star Metric)",
+            "Data-Driven Decision Making (Feedback Loops, A/B Testing, Cohort Analysis, Predictive Analytics)"
+          ]
+        },
+        {
+          "branch": "Communication Skills",
+          "topics": [
+            "Interpersonal (Communication Techniques, Difficult Conversations, Active Listening, Conflict Resolution)",
+            "Stakeholder Management",
+            "Business (Alignment & Buy-In, Showing Impact)"
+          ]
+        },
+        {
+          "branch": "Product Management Tools",
+          "topics": [
+            "Roadmapping Tools (Product Board, Aha, Notion)",
+            "Project Management Tools (Jira, Linear, Trello)",
+            "Analytics Tools (Amplitude, Heap, Looker)",
+            "Communication Tools (Slack, Teams, Discord)"
+          ]
+        },
+        {
+          "branch": "Managing Stakeholders",
+          "topics": [
+            "Identifying Stakeholders",
+            "Stakeholder Mapping",
+            "Stakeholder Engagement",
+            "Remote Stakeholders"
+          ]
+        },
+        {
+          "branch": "Risk Management",
+          "topics": [
+            "Identifying Risks (Risk Identification Technique, Risk Register)",
+            "Risk Assessment (Qualitative Risk Assessment, Quantitative Risk Assessment)",
+            "Mitigation Strategies (Contingency Planning, Risk Mitigation)",
+            "Monitoring and Controlling Risks (Risk Monitoring Tools, Risk Audits)"
+          ]
+        },
+        {
+          "branch": "Advanced Topics",
+          "topics": [
+            "Scaling Products (Growth Strategies, Internationalization, Platform Thinking)",
+            "Advanced Analysis (Predictive Analytics, ML in Product Mgmt, AI in Product Mgmt, Portfolio Management)",
+            "Building and Leading Teams (Leadership and Influence, Influencing without Authority, Emotional Intelligence)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "engineering_manager",
+      "title": "Engineering Manager",
+      "related_roadmaps": [
+        "Backend Development",
+        "DevOps Engineering",
+        "System Design",
+        "Software Architect"
+      ],
+      "prerequisites": [],
+      "content": [
+        {
+          "branch": "Foundational Knowledge",
+          "topics": [
+            "EM vs Tech Lead vs IC",
+            "What is Engineering Management?",
+            "Key Focus Areas (People, Product, Process)",
+            "Software Engineering Background",
+            "System Design and Architecture",
+            "Technical Debt and Management",
+            "Code Review Best Practices",
+            "Technical Documentation"
+          ]
+        },
+        {
+          "branch": "People Management",
+          "sub_branches": [
+            {
+              "title": "Team Development",
+              "items": [
+                "Hiring and Recruitment",
+                "Team Structure and Design",
+                "Performance Evaluations",
+                "Career Development Planning",
+                "Mentoring and Coaching"
+              ]
+            },
+            {
+              "title": "Leadership Skills",
+              "items": [
+                "Delegation",
+                "Conflict Resolution",
+                "Feedback Delivery",
+                "Team Motivation",
+                "Trust/Influence Building",
+                "Emotional Intelligence"
+              ]
+            },
+            {
+              "title": "Communication",
+              "items": [
+                "One-on-One Meetings",
+                "Team Meetings",
+                "Status Reporting",
+                "Stakeholder Management",
+                "Cross-functional Collaboration"
+              ]
+            }
+          ]
+        },
+        {
+          "branch": "Project Management",
+          "sub_branches": [
+            {
+              "title": "Execution",
+              "items": [
+                "Agile methodologies",
+                "Project Tracking",
+                "Milestone Management",
+                "Scope Management",
+                "Timeline Estimation"
+              ]
+            },
+            {
+              "title": "Project Planning",
+              "items": [
+                "Resource Allocation",
+                "Sprint Planning",
+                "Release Management",
+                "Risk Management",
+                "Dependency management"
+              ]
+            },
+            {
+              "title": "Measurement",
+              "items": [
+                "KPI Definition",
+                "Velocity Tracking",
+                "Quality Metrics",
+                "Team Health Metrics",
+                "Project Postmortems"
+              ]
+            }
+          ]
+        },
+        {
+          "branch": "Technical Leadership",
+          "sub_branches": [
+            {
+              "title": "Quality and Process",
+              "items": [
+                "System Monitoring & Performance",
+                "CI/CD Implementation",
+                "Development/Release Workflow",
+                "Testing Strategies",
+                "Technical Standards Setting",
+                "Security Best Practices",
+                "Incident Management"
+              ]
+            },
+            {
+              "title": "Technical Strategy",
+              "items": [
+                "Technical Roadmapping",
+                "Architectural Decision-Making",
+                "Build vs Buy Evaluation",
+                "Technical Risk Assessment",
+                "Scaling Infrastructure",
+                "Legacy System Retirement"
+              ]
+            }
+          ]
+        },
+        {
+          "branch": "Business Acumen",
+          "topics": [
+            "Strategic Thinking (Product strategy alignment, Business Case Development, ROI analysis, Market awareness, Competitive Analysis)",
+            "Financial Management (Budget Planning, Resource forecasting, Cost Optimization, Vendor Management)"
+          ]
+        },
+        {
+          "branch": "Organizational Awareness",
+          "topics": [
+            "Company Culture (Change management, Organization structure, Politics navigation, Cross-department collaboration)",
+            "Engineering Culture (Innovation fostering, Learning culture development, Knowledge sharing practices, Technical excellence mindset, Blameless Post-mortems)",
+            "Team Culture (Defining and Enforcing Values, Inclusive environment creation, Team Traditions and Rituals, Recognition programs, Social connections, Bias Recognition / Mitigation)"
+          ]
+        },
+        {
+          "branch": "Crisis Management",
+          "topics": [
+            "Incident Response (Emergency protocols, War Room Management, Stakeholder Communication, Service Recovery, Post-Incident analysis)",
+            "Risk Mitigation (Contingency planning, Disaster recovery, Business continuity, Security incident handling, Production issues management)",
+            "Team Support (Contingency planning, Disaster recovery, Business continuity, Security incident handling, Production issues management)"
+          ]
+        },
+        {
+          "branch": "Knowledge Management",
+          "topics": [
+            "Documentation (Architecture documentation, Process documentation, Decision records)",
+            "Best Practices (Lessons Learned, Knowledge Transfer, Mentoring Programs, Knowledge bases, Tech Talks, Brown Bags)"
+          ]
+        },
+        {
+          "branch": "Stakeholder Management",
+          "topics": [
+            "Executive Communication (Board presentations, Executive summaries, Strategic proposals, Budget requests, Vision alignment)",
+            "Partner Management (Vendor relationships, Technology partnerships, Integration management, API strategy, External collaboration)",
+            "Customer Relations (Customer feedback integration, Technical customer support, Customer success alignment, Feature prioritization, Technical partnerships)"
+          ]
+        },
+        {
+          "branch": "Change Management",
+          "topics": [
+            "Organizational Change (Change strategy, Impact assessment, Stakeholder management, Communication planning, Resistance management)",
+            "Team Change (Reorganizations, Team mergers, Role transitions, Responsibility shifts, Culture evolution)",
+            "Technical Change (Migration planning, Legacy system retirement, Technology adoption, Tool transitions, Process changes)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "devrel",
+      "title": "DevRel",
+      "related_roadmaps": [],
+      "prerequisites": [],
+      "content": [
+        {
+          "branch": "History and Evolution",
+          "topics": [
+            "Importance of DevRel",
+            "Developer Experience",
+            "Developer Journey",
+            "Developer Marketing"
+          ]
+        },
+        {
+          "branch": "Key Concepts",
+          "topics": [
+            "What is DevRel?"
+          ]
+        },
+        {
+          "branch": "Key Responsibilities",
+          "topics": [
+            "Advocacy",
+            "Education",
+            "Community Support",
+            "Content Creation",
+            "Feedback Loop"
+          ]
+        },
+        {
+          "branch": "Communication Skills",
+          "topics": [
+            "Writing Skills",
+            "Networking"
+          ],
+          "sub_branches": [
+            {
+              "title": "Public Speaking",
+              "items": [
+                "Presentation Techniques",
+                "Rules of Three",
+                "PechaKucha",
+                "Storytelling",
+                "Mind Mapping",
+                "Visualization",
+                "Engaging Audience"
+              ]
+            }
+          ]
+        },
+        {
+          "branch": "Technical Skills",
+          "topics": [
+            "Basic Programming Skills (JavaScript, Node.js, Go, Rust, Python)",
+            "IDEs (JetBrains IDEs, VS Code)",
+            "Social Media",
+            "Technical Documentation",
+            "Blog Posts"
+          ]
+        },
+        {
+          "branch": "Community Engagement",
+          "topics": [
+            "Online Communities"
+          ],
+          "sub_branches": [
+            {
+              "title": "Event Participation",
+              "items": [
+                "The Hook",
+                "Contrast Principle",
+                "Repetition & Reinforcement",
+                "Handling Q&A",
+                "Active Listening",
+                "Anticipate Questions",
+                "Be Concise",
+                "Managing Difficult Questions"
+              ]
+            }
+          ]
+        },
+        {
+          "branch": "API Design",
+          "topics": [
+            "Understanding APIs",
+            "Building APIs",
+            "Handling Q&A"
+          ]
+        },
+        {
+          "branch": "Version Control",
+          "topics": [
+            "Git",
+            "GitHub (Managing Discussions, Issues & Pull Requests, Labelling and Cleanup, Milestones & Releases, Public Backlog)"
+          ]
+        },
+        {
+          "branch": "Community Building",
+          "topics": [
+            "Identifying Audience",
+            "Platform Selection",
+            "Initial Outreach",
+            "Community Guidelines",
+            "Code of Conduct",
+            "Rules and Policies",
+            "Building a Community (Feedback Collection, Surveys, Post Event Followup)",
+            "Community Management (Recognition Programs, Encouraging Participation, Conflict Resolution, Moderation)"
+          ]
+        },
+        {
+          "branch": "Event Management",
+          "topics": [
+            "Collaborations (Cross-Promotion)",
+            "Event Blogging (SEO Basics, Writing Process, Topic Selection)",
+            "Planning",
+            "Execution",
+            "Promotion",
+            "Technical Setup (Video, Audio, Animations & Graphics, Editing, Recording, Scripting)"
+          ]
+        },
+        {
+          "branch": "Content Creation",
+          "topics": [
+            "Blogging",
+            "Developer Onboarding (API References, User Guides, Code Samples, Example Apps, Use Case Based)",
+            "Social Media (Facebook, Instagram, X, LinkedIn, Content Strategy -> Consistent Posting, Engaging Content, Creating Brand Voice)",
+            "Video Production (YouTube, Twitch, Streamyard, Platform Selection, Live Streaming)"
+          ]
+        },
+        {
+          "branch": "Metrics & Analytics",
+          "topics": [
+            "Reporting (Regular Reports, Data Visualization, Insights & Recommendations)",
+            "Support (Forums, Issue Tracking, FAQs, Office Hours, Webinars, Live Support)",
+            "Community Growth (Engagement Rates, Content Performance, Developer Satisfaction)",
+            "Key Metrics (Tracking Engagement, Data-Driven Strategy Shift, Platform Specific Analytics, Social Media Analytics, Google Analytics)"
+          ]
+        },
+        {
+          "branch": "Career Development",
+          "topics": [
+            "Building a Personal Brand",
+            "Networking Strategies",
+            "Continuous Learning",
+            "Thought Leadership (Publishing, Media Appearances, Conference Speaking)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bi_analyst",
+      "title": "BI Analyst",
+      "related_roadmaps": [
+        "Data Analyst",
+        "SQL",
+        "AI & Data Scientist"
+      ],
+      "prerequisites": [],
+      "content": [
+        {
+          "branch": "Introduction",
+          "topics": [
+            "What is BI?",
+            "Why BI Matters?",
+            "Business Fundamentals",
+            "BI Analyst vs Other Roles (Skills, Responsibilities)",
+            "Stakeholder Identification (Finance, Marketing, Operations, HR)",
+            "Metrics and KPIs"
+          ]
+        },
+        {
+          "branch": "Types of BI Operations",
+          "topics": [
+            "Descriptive Analysis",
+            "Diagnostic Analysis",
+            "Predictive Analysis",
+            "Prescriptive Analysis",
+            "Operational BI",
+            "Tactical BI",
+            "Strategic BI"
+          ]
+        },
+        {
+          "branch": "Statistics Basics",
+          "topics": [
+            "Categorical vs Numerical",
+            "Discrete vs Continuous",
+            "Types of Data Analysis",
+            "Variables and Data Types",
+            "Central Tendency (Mean, Median, Mode)",
+            "Dispersion (Range, Variance, STD, IQR)",
+            "Distribution (Skewness, Kurtosis)",
+            "Inferential Statistics (Correlation vs Causation, Correlation Analysis, Regression Analysis -> Linear Regression, Beyond Linear Regression, Hypothesis Testing -> Population & Sample, p-value, Confidence Intervals, Types of Errors)"
+          ]
+        },
+        {
+          "branch": "BI Core Skills",
+          "topics": [
+            "What is Data? (Analog vs Digital Data, Types of data -> Structured, Semistructured, Unstructured, Data Formats -> Excel, CSV, JSON, XML, Other formats)",
+            "Data Sources (Databases, Web, Mobile Apps, Cloud, APIs, IoT)",
+            "SQL Fundamentals (Basic Queries, Advanced Queries, Window Functions, Performance)",
+            "Popular Databases (MySQL, PostgreSQL, SQLite, Oracle)"
+          ]
+        },
+        {
+          "branch": "Data Cleaning",
+          "topics": [
+            "Tools for Data Cleaning (Excel, SQL, Pandas, dplyr)",
+            "Data Transformation Techniques (Standardization, Missing Values, Duplicates, Outliers)"
+          ]
+        },
+        {
+          "branch": "Exploratory Data Analysis (EDA)",
+          "topics": [
+            "Visualizing Data (Color theory, Accessibility, Design principles, Misleading charts, Mobile-responsiveness)",
+            "Visualization Fundamentals",
+            "Chart Categories",
+            "Visualization Best Practices",
+            "Popular Plots (Barplot, Histogram, Heatmap, Lineplot, Scatterplot, Map)"
+          ]
+        },
+        {
+          "branch": "BI Tools",
+          "topics": [
+            "Power BI",
+            "Tableau",
+            "Qlik",
+            "Looker",
+            "Excel",
+            "BI Platforms"
+          ]
+        },
+        {
+          "branch": "Cloud Computing",
+          "topics": [
+            "Cloud Computing Basics",
+            "Cloud data warehouses",
+            "Providers (AWS, GCP, Azure)"
+          ]
+        },
+        {
+          "branch": "Programming Languages",
+          "topics": [
+            "Python",
+            "R"
+          ]
+        },
+        {
+          "branch": "Business Applications",
+          "topics": [
+            "Sales Performance",
+            "Inventory Optimization",
+            "Finance (Financial Performance, Fraud Detection, Risk Analytics)",
+            "Marketing Campaigns (CLV)",
+            "Supply Chain Analytics",
+            "Retail & E-commerce",
+            "Healthcare (Patient management, Hospital Efficiency, Public Health)",
+            "Manufacturing (Predictive Maintenance, Production Efficiency, Quality Control)"
+          ]
+        },
+        {
+          "branch": "BI Techniques",
+          "topics": [
+            "Forecasting (Seasonality, Trends)",
+            "Time Series Analysis"
+          ]
+        },
+        {
+          "branch": "Communication & Storytelling",
+          "topics": [
+            "Storytelling Framework",
+            "Presentation Design",
+            "Dashboard Design",
+            "Writing Executive Summaries"
+          ]
+        },
+        {
+          "branch": "Professional Excellence",
+          "topics": [
+            "A/B Testing",
+            "Cohort Analysis",
+            "Soft Skills (Business Acumen, Critical Thinking, Project Management, Change Management, Stakeholder Management)",
+            "Basic Machine Learning (Supervised Learning, Unsupervised Learning, Reinforcement Learning, Algorithmic Bias)"
+          ]
+        },
+        {
+          "branch": "Data Governance & Ethics",
+          "topics": [
+            "Ethical Data Use",
+            "Bias Recognition",
+            "Mitigation Strategies",
+            "Data Quality (Relevance, Timeliness, Accessibility, Interpretability, Accuracy, Coherence)",
+            "Privacy (GDPR, CCPA)",
+            "Data Lineage"
+          ]
+        },
+        {
+          "branch": "Data Architectures",
+          "topics": [
+            "Data Modeling for BI (Normalization vs Denormalization, Fact vs Dimension Tables, Star vs Snowflake Schema)",
+            "Data Architectures (Data Warehouse, Data Lake, Data Mart)",
+            "Cloud BI Ecosystem",
+            "ETL Tools (Airflow, dbt, Calculated Fields & Measures, ETL basics)"
+          ]
+        },
+        {
+          "branch": "Career Development",
+          "topics": [
+            "Building Your Portfolio (End-to-end Analytics Project, Dashboard Design, Data Pipeline Design)",
+            "Professional Development (BI Communities, BI Competitions, Networking, Open-Source Projects)",
+            "Job Preparation (Resume optimization, Portfolio presentation, Interview preparation, Salary negotiation strategies, Conferences & Webinars)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "network_engineer",
+      "title": "Network Engineer",
+      "related_roadmaps": [
+        "DevOps Roadmap",
+        "System Design Roadmap",
+        "Shell/Bash Roadmap",
+        "Cybersecurity Roadmap",
+        "Backend"
+      ],
+      "prerequisites": [],
+      "content": [
+        {
+          "branch": "Introduction",
+          "topics": [
+            "Basic Terminology (Client, Server, Host, Package, Frame, Bandwidth, Latency, Throughput, Network, Port, Socket, IP Address, Mac Address, ARP, Transmission Media Types)",
+            "How does the Internet Work?",
+            "What are Networks? (Network Types -> LAN, WAN, MAN, WLAN, PAN, SAN, VPN, Cloud, Client-Server Network, Peer-to-Peer Network)"
+          ]
+        },
+        {
+          "branch": "Network Devices",
+          "topics": [
+            "Routers",
+            "Switches",
+            "Hub",
+            "Modems",
+            "Access Points"
+          ]
+        },
+        {
+          "branch": "OSI Model",
+          "topics": [
+            "7 Layers (Physical, Data Link, Network, Transport, Session, Presentation, Application)"
+          ]
+        },
+        {
+          "branch": "TCP/IP Model",
+          "topics": [
+            "Network Access",
+            "Internet",
+            "Transport",
+            "Application"
+          ]
+        },
+        {
+          "branch": "Core Protocols",
+          "topics": [
+            "HTTP / HTTPS",
+            "SSH",
+            "SSL / TLS",
+            "NTP",
+            "FTP / SFTP",
+            "SNTP",
+            "SMTP / IMAP",
+            "DHCP"
+          ]
+        },
+        {
+          "branch": "IP Addressing",
+          "topics": [
+            "IPv4 vs IPv6",
+            "Public vs Private Addresses",
+            "IP vs MAC vs ARP"
+          ]
+        },
+        {
+          "branch": "Subnetting",
+          "topics": [
+            "Subnet Masks",
+            "CIDR",
+            "VLSM",
+            "Supernetting"
+          ]
+        },
+        {
+          "branch": "Routing",
+          "topics": [
+            "Static vs Dynamic Routing",
+            "Default Gateway",
+            "Routing Protocols (BGP, OSPF, RIP, EIGRP, MPLS)"
+          ]
+        },
+        {
+          "branch": "Switching",
+          "topics": [
+            "VLANs",
+            "STP",
+            "Link Aggregation",
+            "MAC Address Tables"
+          ]
+        },
+        {
+          "branch": "DNS",
+          "topics": [
+            "DNS Servers (Cloudflare, Google, OpenDNS, Quad9)"
+          ]
+        },
+        {
+          "branch": "Wireless Networking",
+          "topics": [
+            "WiFi Standards",
+            "Access Points & Controllers",
+            "Bluetooth Basics",
+            "Hotspot and Tethering",
+            "Mobile Networks",
+            "Wireless Security (WPA vs WPS)"
+          ]
+        },
+        {
+          "branch": "Load Balancer",
+          "topics": [
+            "Round Robin",
+            "Least Connections",
+            "Failover"
+          ]
+        },
+        {
+          "branch": "QoS (Quality of Service)",
+          "topics": [
+            "Traffic shaping",
+            "Packet prioritization"
+          ]
+        },
+        {
+          "branch": "Network Security",
+          "topics": [
+            "Cybersecurity Roadmap",
+            "Firewalls (Firewall Types -> Packet Filtering, Stateful Inspection, Next-Generation, Proxy, Circuit Level Gateway, Web Application)",
+            "VPNs (IPSec vs SSL VPN, Site-to-Site vs Remote Access)",
+            "Network Attacks (DoS & DDoS)",
+            "Encryption Basics",
+            "Zero Trust Architecture",
+            "IDS / IPS"
+          ]
+        },
+        {
+          "branch": "Observability",
+          "topics": [
+            "Network Observability Tools (Wireshark, Nmap, NetFlow/sFlow, SNMP)"
+          ]
+        }
+      ]
+    }
+  ]
+}

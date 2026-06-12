@@ -3,6 +3,8 @@
 // 1. The Temporal Knowledge Graph (TKG) structures and skill dependency traversals.
 // 2. The Step Semi-Markov Process (SSMP) hazard rate models.
 
+import roadmapData from '../public/roadmap.json';
+
 export interface SkillNode {
   name: string;
   level: 'Rank-1' | 'Rank-2' | 'Rank-3';
@@ -26,43 +28,197 @@ export interface SkillDAGNode {
   name: string;
   rank: 0 | 1 | 2 | 3;
   prerequisites: string[];
+  description?: string;
+  url?: string;
 }
 
-// Explicit Skill DAG definition
+// Explicit Skill DAG definition with mock descriptions
 export const SKILL_DAG: Record<string, SkillDAGNode> = {
   // AI Architect Track
-  'AI Architect': { name: 'AI Architect', rank: 3, prerequisites: ['Deep Learning', 'System Architecture'] },
-  'Deep Learning': { name: 'Deep Learning', rank: 2, prerequisites: ['PyTorch', 'Linear Algebra'] },
-  'System Architecture': { name: 'System Architecture', rank: 2, prerequisites: ['Distributed Systems', 'Cloud Computing'] },
-  'PyTorch': { name: 'PyTorch', rank: 1, prerequisites: ['Python'] },
-  'Distributed Systems': { name: 'Distributed Systems', rank: 1, prerequisites: ['Linux', 'Computer Networking'] },
-  'Cloud Computing': { name: 'Cloud Computing', rank: 1, prerequisites: ['Linux'] },
-  'Python': { name: 'Python', rank: 0, prerequisites: [] },
-  'Linear Algebra': { name: 'Linear Algebra', rank: 0, prerequisites: [] },
-  'Linux': { name: 'Linux', rank: 0, prerequisites: [] },
-  'Computer Networking': { name: 'Computer Networking', rank: 0, prerequisites: [] },
+  'AI Architect': { name: 'AI Architect', rank: 3, prerequisites: ['Deep Learning', 'System Architecture'], description: 'A senior engineering role responsible for designing robust, scalable, and secure artificial intelligence and machine learning architectures for enterprise applications.', url: 'https://roadmap.sh/ai-data-scientist' },
+  'Deep Learning': { name: 'Deep Learning', rank: 2, prerequisites: ['PyTorch', 'Linear Algebra'], description: 'A subset of machine learning based on artificial neural networks with multiple layers, used to model complex patterns in data.', url: 'https://www.deeplearning.ai/' },
+  'System Architecture': { name: 'System Architecture', rank: 2, prerequisites: ['Distributed Systems', 'Cloud Computing'], description: 'The conceptual model that defines the structure, behavior, and more views of a system, crucial for ensuring scalability and resilience.', url: 'https://roadmap.sh/software-architect' },
+  'PyTorch': { name: 'PyTorch', rank: 1, prerequisites: ['Python'], description: 'An open source machine learning framework based on the Torch library, used for applications such as computer vision and natural language processing.', url: 'https://pytorch.org/' },
+  'Distributed Systems': { name: 'Distributed Systems', rank: 1, prerequisites: ['Linux', 'Computer Networking'], description: 'A system whose components are located on different networked computers, which communicate and coordinate their actions by passing messages.', url: 'https://en.wikipedia.org/wiki/Distributed_computing' },
+  'Cloud Computing': { name: 'Cloud Computing', rank: 1, prerequisites: ['Linux'], description: 'The on-demand availability of computer system resources, especially data storage and computing power, without direct active management by the user.', url: 'https://cloud.google.com/learn/what-is-cloud-computing' },
+  'Python': { name: 'Python', rank: 0, prerequisites: [], description: 'A high-level, general-purpose programming language widely used in data science, machine learning, and backend development.', url: 'https://www.python.org/' },
+  'Linear Algebra': { name: 'Linear Algebra', rank: 0, prerequisites: [], description: 'The branch of mathematics concerning linear equations, linear maps and their representations in vector spaces, fundamental for ML algorithms.', url: 'https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/' },
+  'Linux': { name: 'Linux', rank: 0, prerequisites: [], description: 'A family of open-source Unix-like operating systems based on the Linux kernel, essential for server management and deployment.', url: 'https://www.linux.org/' },
+  'Computer Networking': { name: 'Computer Networking', rank: 0, prerequisites: [], description: 'The study and implementation of interconnected computing devices that exchange data and share resources with each other.', url: 'https://www.cisco.com/c/en/us/solutions/enterprise-networks/what-is-computer-networking.html' },
 
   // Frontend Architect Track
-  'Frontend Architect': { name: 'Frontend Architect', rank: 3, prerequisites: ['Advanced React', 'Performance Tuning'] },
-  'Advanced React': { name: 'Advanced React', rank: 2, prerequisites: ['State Management', 'TypeScript'] },
-  'Performance Tuning': { name: 'Performance Tuning', rank: 2, prerequisites: ['Browser Engines', 'Web Performance'] },
-  'State Management': { name: 'State Management', rank: 1, prerequisites: ['JavaScript'] },
-  'Browser Engines': { name: 'Browser Engines', rank: 1, prerequisites: ['JavaScript'] },
-  'Web Performance': { name: 'Web Performance', rank: 1, prerequisites: ['HTML/CSS'] },
-  'TypeScript': { name: 'TypeScript', rank: 1, prerequisites: ['JavaScript'] },
-  'JavaScript': { name: 'JavaScript', rank: 0, prerequisites: [] },
-  'HTML/CSS': { name: 'HTML/CSS', rank: 0, prerequisites: [] },
+  'Frontend Architect': { name: 'Frontend Architect', rank: 3, prerequisites: ['Advanced React', 'Performance Tuning'], description: 'Technical leader responsible for the macro-level architecture, performance, and tooling of front-end applications.', url: 'https://roadmap.sh/frontend' },
+  'Advanced React': { name: 'Advanced React', rank: 2, prerequisites: ['State Management', 'TypeScript'], description: 'Deep understanding of React.js including custom hooks, context API, concurrent rendering, and architecture patterns.', url: 'https://react.dev/' },
+  'Performance Tuning': { name: 'Performance Tuning', rank: 2, prerequisites: ['Browser Engines', 'Web Performance'], description: 'The practice of optimizing web applications to reduce load times, improve responsiveness, and lower resource consumption.', url: 'https://web.dev/fast/' },
+  'State Management': { name: 'State Management', rank: 1, prerequisites: ['JavaScript'], description: 'Techniques and libraries (like Redux, Zustand) used to manage the data state of a user interface across multiple components.', url: 'https://redux.js.org/' },
+  'Browser Engines': { name: 'Browser Engines', rank: 1, prerequisites: ['JavaScript'], description: 'The core software component of every major web browser that transforms HTML documents and other resources into an interactive visual representation.', url: 'https://developer.mozilla.org/en-US/docs/Web/Performance/How_browsers_work' },
+  'Web Performance': { name: 'Web Performance', rank: 1, prerequisites: ['HTML/CSS'], description: 'The objective measurement and perceived user experience of load time and runtime of a web site or application.', url: 'https://developer.mozilla.org/en-US/docs/Learn/Performance' },
+  'TypeScript': { name: 'TypeScript', rank: 1, prerequisites: ['JavaScript'], description: 'A strongly typed programming language that builds on JavaScript, giving you better tooling at any scale.', url: 'https://www.typescriptlang.org/' },
+  'JavaScript': { name: 'JavaScript', rank: 0, prerequisites: [], description: 'The core scripting language of the Web, enabling dynamic content, control over multimedia, and animate images.', url: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript' },
+  'HTML/CSS': { name: 'HTML/CSS', rank: 0, prerequisites: [], description: 'The foundational markup and styling languages used to create and design the visual structure of web pages.', url: 'https://developer.mozilla.org/en-US/docs/Web/HTML' },
 
   // Engineering Director Track
-  'Engineering Director': { name: 'Engineering Director', rank: 3, prerequisites: ['Technical Leadership', 'Product Strategy'] },
-  'Technical Leadership': { name: 'Technical Leadership', rank: 2, prerequisites: ['Agile Delivery', 'System Design'] },
-  'Product Strategy': { name: 'Product Strategy', rank: 2, prerequisites: ['Agile Delivery', 'Market Analysis'] },
-  'Agile Delivery': { name: 'Agile Delivery', rank: 1, prerequisites: ['Communication'] },
-  'System Design': { name: 'System Design', rank: 1, prerequisites: ['Software Engineering'] },
-  'Market Analysis': { name: 'Market Analysis', rank: 1, prerequisites: ['Communication'] },
-  'Communication': { name: 'Communication', rank: 0, prerequisites: [] },
-  'Software Engineering': { name: 'Software Engineering', rank: 0, prerequisites: [] }
+  'Engineering Director': { name: 'Engineering Director', rank: 3, prerequisites: ['Technical Leadership', 'Product Strategy'], description: 'A high-level management role overseeing engineering teams, driving technical strategy, and ensuring alignment with business goals.', url: 'https://roadmap.sh/engineering-manager' },
+  'Technical Leadership': { name: 'Technical Leadership', rank: 2, prerequisites: ['Agile Delivery', 'System Design'], description: 'The ability to guide technical decisions, mentor engineers, and foster a strong engineering culture.', url: 'https://leaddev.com/' },
+  'Product Strategy': { name: 'Product Strategy', rank: 2, prerequisites: ['Agile Delivery', 'Market Analysis'], description: 'The high-level plan describing what a business hopes to accomplish with its product and how it plans to do so.', url: 'https://www.productplan.com/glossary/product-strategy/' },
+  'Agile Delivery': { name: 'Agile Delivery', rank: 1, prerequisites: ['Communication'], description: 'Iterative approach to software delivery that builds software incrementally from the start of the project.', url: 'https://agilemanifesto.org/' },
+  'System Design': { name: 'System Design', rank: 1, prerequisites: ['Software Engineering'], description: 'The process of defining the architecture, modules, interfaces, and data for a system to satisfy specified requirements.', url: 'https://github.com/donnemartin/system-design-primer' },
+  'Market Analysis': { name: 'Market Analysis', rank: 1, prerequisites: ['Communication'], description: 'The quantitative and qualitative assessment of a market, crucial for aligning technical products with user needs.', url: 'https://en.wikipedia.org/wiki/Market_analysis' },
+  'Communication': { name: 'Communication', rank: 0, prerequisites: [], description: 'Effective verbal and written exchange of ideas, vital for cross-functional collaboration and leadership.', url: 'https://hbr.org/topic/subject/communication' },
+  'Software Engineering': { name: 'Software Engineering', rank: 0, prerequisites: [], description: 'The systematic application of engineering approaches to the development of software.', url: 'https://en.wikipedia.org/wiki/Software_engineering' }
 };
+
+export const DEFAULT_ROADMAP_METADATA = [
+  {
+    id: "ai_architect",
+    title: "AI Architect",
+    related_roadmaps: ["MLOps", "Engineering Manager"],
+    prerequisites: ["Python", "Linear Algebra"],
+    content: [
+      {
+        branch: "Foundations",
+        topics: ["Python", "Linear Algebra", "Linux", "Computer Networking"]
+      },
+      {
+        branch: "Core Frameworks",
+        topics: ["PyTorch", "Distributed Systems", "Cloud Computing"]
+      },
+      {
+        branch: "Advanced Systems",
+        topics: ["Deep Learning", "System Architecture"]
+      },
+      {
+        branch: "AI Trajectory Specialization",
+        topics: ["AI Architect"]
+      }
+    ]
+  },
+  {
+    id: "frontend_architect",
+    title: "Frontend Architect",
+    related_roadmaps: ["UX Design"],
+    prerequisites: ["JavaScript", "HTML/CSS"],
+    content: [
+      {
+        branch: "Foundations",
+        topics: ["JavaScript", "HTML/CSS"]
+      },
+      {
+        branch: "Core Frameworks",
+        topics: ["State Management", "Browser Engines", "Web Performance", "TypeScript"]
+      },
+      {
+        branch: "Advanced Systems",
+        topics: ["Advanced React", "Performance Tuning"]
+      },
+      {
+        branch: "Frontend Trajectory Specialization",
+        topics: ["Frontend Architect"]
+      }
+    ]
+  },
+  {
+    id: "engineering_director",
+    title: "Engineering Director",
+    related_roadmaps: ["Engineering Manager", "Product Manager"],
+    prerequisites: ["Communication", "Software Engineering"],
+    content: [
+      {
+        branch: "Foundations",
+        topics: ["Communication", "Software Engineering"]
+      },
+      {
+        branch: "Core Frameworks",
+        topics: ["Agile Delivery", "System Design", "Market Analysis"]
+      },
+      {
+        branch: "Advanced Systems",
+        topics: ["Technical Leadership", "Product Strategy"]
+      },
+      {
+        branch: "Management Trajectory Specialization",
+        topics: ["Engineering Director"]
+      }
+    ]
+  }
+];
+
+
+// Dynamically seed SKILL_DAG from public/roadmap.json
+try {
+  if (roadmapData && roadmapData.roadmaps) {
+    roadmapData.roadmaps.forEach((roadmap: any) => {
+      const roadmapTitle = roadmap.title;
+      
+      // Seed Rank 3 (Roadmap itself)
+      if (!SKILL_DAG[roadmapTitle]) {
+        SKILL_DAG[roadmapTitle] = {
+          name: roadmapTitle,
+          rank: 3,
+          prerequisites: roadmap.content.map((c: any) => c.branch)
+        };
+      }
+
+      roadmap.content.forEach((c: any) => {
+        // Seed Rank 2 (Branch)
+        if (!SKILL_DAG[c.branch]) {
+          const branchPrereqs: string[] = [];
+          if (c.topics) {
+            branchPrereqs.push(...c.topics);
+          }
+          if (c.sub_branches) {
+            branchPrereqs.push(...c.sub_branches.map((sb: any) => sb.title));
+          }
+          SKILL_DAG[c.branch] = {
+            name: c.branch,
+            rank: 2,
+            prerequisites: branchPrereqs
+          };
+        }
+
+        // Seed Rank 1 Topics
+        if (c.topics) {
+          c.topics.forEach((topic: string) => {
+            if (!SKILL_DAG[topic]) {
+              SKILL_DAG[topic] = {
+                name: topic,
+                rank: 1,
+                prerequisites: []
+              };
+            }
+          });
+        }
+
+        // Seed Rank 1 Sub-branches & Rank 0 Items
+        if (c.sub_branches) {
+          c.sub_branches.forEach((sb: any) => {
+            if (!SKILL_DAG[sb.title]) {
+              SKILL_DAG[sb.title] = {
+                name: sb.title,
+                rank: 1,
+                prerequisites: sb.items || []
+              };
+            }
+
+            if (sb.items) {
+              sb.items.forEach((item: string) => {
+                if (!SKILL_DAG[item]) {
+                  SKILL_DAG[item] = {
+                    name: item,
+                    rank: 0,
+                    prerequisites: []
+                  };
+                }
+              });
+            }
+          });
+        }
+      });
+    });
+  }
+} catch (e) {
+  // console.error("Error seeding SKILL_DAG from roadmap.json:", e);
+}
 
 // Breadth-first search to get all pre-requisites recursively
 export function getPreRequisitesRecursive(skillName: string): string[] {
@@ -277,6 +433,121 @@ export function predictEmployeeChurn(
   };
 }
 
+export interface CohortReadinessFactor {
+  label: string;
+  effect: number;
+  description: string;
+  type: 'positive' | 'negative' | 'neutral';
+}
+
+export interface CohortReadinessResult {
+  ctriScore: number;
+  tsmiScore: number;
+  tenureScore: number;
+  academicScore: number;
+  continuityScore: number;
+  cohortMedianTenure: number;
+  matchedSkillsCount: number;
+  totalSkillsCount: number;
+  factors: CohortReadinessFactor[];
+}
+
+export function calculateCohortReadiness(
+  tenureMonths: number,
+  tsmiScore: number,
+  educationMatch: boolean,
+  seniorityMatch: boolean,
+  cohortMedianTenure: number
+): CohortReadinessResult {
+  // 1. TSMI (Skill Compatibility Score)
+  // Supplied directly as a parameter for perfect consistency with Resume Builder
+
+  // 2. Tenure alignment score: bell curve peaking at cohortMedianTenure
+  // Formula: S_tenure = 100 * exp(-0.5 * ((t - M_cohort) / 12)^2)
+  const t = tenureMonths;
+  const M_cohort = cohortMedianTenure || 28;
+  const sigma = 12; // standard deviation of 1 year
+  const tenureScore = Math.round(100 * Math.exp(-0.5 * Math.pow((t - M_cohort) / sigma, 2)));
+
+  // 3. Academic Compatibility Score
+  const academicScore = educationMatch ? 100 : 30;
+
+  // 4. Seniority / Leadership Match Score
+  const seniorityScore = seniorityMatch ? 100 : 40;
+
+  // Weighted CTRI Calculation
+  // CTRI = 0.45 * TSMI + 0.25 * S_tenure + 0.15 * S_academic + 0.15 * S_seniority
+  const ctriScore = Math.round(
+    0.45 * tsmiScore +
+    0.25 * tenureScore +
+    0.15 * academicScore +
+    0.15 * seniorityScore
+  );
+
+  // Factors breakdown
+  const factors: CohortReadinessFactor[] = [];
+
+  // TSMI factor
+  factors.push({
+    label: 'Skill Pre-requisites (TSMI)',
+    effect: Math.round(0.45 * tsmiScore),
+    description: `Resume keyword verification shows ${tsmiScore}% weighted alignment with target requirements`,
+    type: tsmiScore >= 75 ? 'positive' : tsmiScore >= 40 ? 'neutral' : 'negative'
+  });
+
+  // Tenure alignment factor
+  let tenureType: 'positive' | 'neutral' | 'negative' = 'neutral';
+  let tenureDesc = '';
+  if (t < M_cohort - 6) {
+    tenureType = 'neutral';
+    tenureDesc = `Current tenure of ${t}m is below the cohort typical transition window peak of ${M_cohort}m.`;
+  } else if (t > M_cohort + 12) {
+    tenureType = 'negative';
+    tenureDesc = `Tenure of ${t}m exceeds typical cohort transition sweet spot (${M_cohort}m). Consider a move to avoid stagnation.`;
+  } else {
+    tenureType = 'positive';
+    tenureDesc = `Current tenure of ${t}m aligns optimally with the cohort's prime transition window (${M_cohort}m).`;
+  }
+  factors.push({
+    label: 'Tenure Window Alignment',
+    effect: Math.round(0.25 * tenureScore),
+    description: tenureDesc,
+    type: tenureType
+  });
+
+  // Academic alignment factor
+  factors.push({
+    label: 'Academic Track Alignment',
+    effect: Math.round(0.15 * academicScore),
+    description: educationMatch
+      ? 'Formal credentials match cohort entry requirements (+15% weight)'
+      : 'Degree background is outside target technical domain (requires self-taught validation)',
+    type: educationMatch ? 'positive' : 'negative'
+  });
+
+  // Seniority Match factor
+  factors.push({
+    label: 'Seniority Level Alignment',
+    effect: Math.round(0.15 * seniorityScore),
+    description: seniorityMatch
+      ? 'Held progressive senior milestones (Senior, Lead, or Architect titles) in your timeline (+15% weight)'
+      : 'Limited senior leadership titles in milestones (requires strategic positioning)',
+    type: seniorityMatch ? 'positive' : 'neutral'
+  });
+
+  return {
+    ctriScore,
+    tsmiScore,
+    tenureScore,
+    academicScore,
+    continuityScore: seniorityScore, // mapped to continuityScore field for schema compatibility
+    cohortMedianTenure: M_cohort,
+    matchedSkillsCount: 0, // calculated on frontend
+    totalSkillsCount: 0,
+    factors
+  };
+}
+
 export interface MarketAnalysis {
   geo: string;
   marketDemand: string;
@@ -348,7 +619,7 @@ export function analyzeResumeText(text: string): ParsedResult {
 
   // Date ranges regex matching formats like:
   // Jan 2022 - Jun 2024, 2022-01 to Present, 2022 - 2024, Jan 2022 to Present, etc.
-  const dateRangeRegex = /\b((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[\s,./-]*\d{4}|\d{4}[\s,./-]*\d{2}|\b\d{4}\b)[\s,./-]*(?:to|and|-|–|—)[\s,./-]*((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[\s,./-]*\d{4}|\d{4}[\s,./-]*\d{2}|\b\d{4}\b|\bPresent\b|\bCurrent\b)/i;
+  const dateRangeRegex = /\b((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[\s,./-]*\d{4}|\d{4}[\s,./-]*\d{2}|\b\d{4}\b)[\s,./-]*(?:to|and|-|â€“|â€”)[\s,./-]*((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[\s,./-]*\d{4}|\d{4}[\s,./-]*\d{2}|\b\d{4}\b|\bPresent\b|\bCurrent\b)/i;
   const INVALID_ORG_WORDS = ['date', 'dates', 'period', 'timeline', 'year', 'years', 'duration', 'time', 'when', 'from', 'to'];
   const ROLE_KEYWORDS = [
     'engineer', 'developer', 'architect', 'designer', 'manager', 'director', 'lead',
@@ -405,7 +676,7 @@ export function analyzeResumeText(text: string): ParsedResult {
       const endDate = parseDateString(dateMatch[2]);
 
       let headerText = currentLine.replace(dateRangeRegex, '').trim();
-      headerText = headerText.replace(/^[\s,.:;•/|()\-–—\[\]]+|[\s,.:;•/|()\-–—\[\]]+$/g, '').trim();
+      headerText = headerText.replace(/^[\s,.:;â€¢/|()\-â€“â€”\[\]]+|[\s,.:;â€¢/|()\-â€“â€”\[\]]+$/g, '').trim();
 
       const cleanHeaderLower = headerText.toLowerCase().replace(/[^a-z]/g, '');
       if (headerText.length < 3 || INVALID_ORG_WORDS.includes(cleanHeaderLower)) {
@@ -422,7 +693,7 @@ export function analyzeResumeText(text: string): ParsedResult {
       let role = '';
       let organization = '';
 
-      const separators = [/\s+at\s+/i, /\s+@\s+/, /\s*\|\s*/, /\s*–\s*/, /\s*—\s*/, /\s*-\s*/, /,\s*/];
+      const separators = [/\s+at\s+/i, /\s+@\s+/, /\s*\|\s*/, /\s*â€“\s*/, /\s*â€”\s*/, /\s*-\s*/, /,\s*/];
       let splitDone = false;
       for (const sep of separators) {
         if (sep.test(headerText)) {
@@ -467,8 +738,8 @@ export function analyzeResumeText(text: string): ParsedResult {
         }
       }
 
-      role = role.replace(/^[\s,.:;•/|()\-–—\[\]]+|[\s,.:;•/|()\-–—\[\]]+$/g, '').trim();
-      organization = organization.replace(/^[\s,.:;•/|()\-–—\[\]]+|[\s,.:;•/|()\-–—\[\]]+$/g, '').trim();
+      role = role.replace(/^[\s,.:;â€¢/|()\-â€“â€”\[\]]+|[\s,.:;â€¢/|()\-â€“â€”\[\]]+$/g, '').trim();
+      organization = organization.replace(/^[\s,.:;â€¢/|()\-â€“â€”\[\]]+|[\s,.:;â€¢/|()\-â€“â€”\[\]]+$/g, '').trim();
 
       const descLines: string[] = [];
       const endSearchIdx = (idx < milestoneIndices.length - 1) ? milestoneIndices[idx + 1] : lines.length;
@@ -479,7 +750,52 @@ export function analyzeResumeText(text: string): ParsedResult {
         }
       }
       
-      const description = descLines.slice(0, 3).join(' ') || `Role at ${organization}.`;
+      // Build a professional description from extracted content, ensuring ~60 words minimum
+      const rawDesc = descLines.join(' ').trim();
+      
+      // Determine type-based language for the role
+      const typeStr = (() => {
+        const ol = organization.toLowerCase();
+        const rl = role.toLowerCase();
+        if (ol.includes('university') || ol.includes('college') || ol.includes('institute') || rl.includes('bachelor') || rl.includes('master') || rl.includes('phd') || rl.includes('b.sc') || rl.includes('m.sc')) {
+          return 'academic';
+        } else if (ol.includes('sabbatical') || rl.includes('sabbatical') || rl.includes('independent research') || ol.includes('break')) {
+          return 'sabbatical';
+        }
+        return 'employment';
+      })();
+
+      // Build a professional description from what we have, expanding if too short
+      let description = rawDesc;
+
+      const wordCount = (s: string) => s.split(/\s+/).filter(Boolean).length;
+
+      if (wordCount(description) < 55) {
+        // Supplement with professional context based on type and role
+        if (typeStr === 'academic') {
+          const degreePrefix = role.toLowerCase().includes('master') || role.toLowerCase().includes('m.sc') ? 'postgraduate' : 'undergraduate';
+          const academicFill = `Pursued a ${degreePrefix} programme in ${role} at ${organization}, developing a strong foundation in core theoretical concepts and applied technical competencies. The programme emphasised analytical thinking, research methodology, and collaborative problem-solving across a structured academic curriculum. ${rawDesc ? rawDesc + '.' : ''}Graduated with comprehensive knowledge of the subject domain, preparing for industry application through practical project work and academic research.`;
+          description = academicFill.trim();
+        } else if (typeStr === 'sabbatical') {
+          description = `Undertook a self-directed period of independent learning, research, and professional development as a ${role}. Invested time in deepening technical expertise, exploring emerging domain trends, and building new capabilities aligned with long-term career objectives. ${rawDesc ? rawDesc + '.' : ''}Applied structured study and self-initiated project work to maintain and extend professional competency during this independent phase.`.trim();
+        } else {
+          // Employment: construct a professional paragraph
+          const nodeSkillsContext = detectedSkills
+            .filter(s => {
+              const escaped = s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+              const r = new RegExp(`\\b${escaped}\\b`, 'i');
+              return r.test(role + ' ' + organization + ' ' + rawDesc);
+            })
+            .slice(0, 3)
+            .join(', ');
+
+          const skillSentence = nodeSkillsContext
+            ? `Applied core competencies in ${nodeSkillsContext} to deliver quality outcomes.`
+            : 'Applied strong technical and analytical skills to deliver results across key initiatives.';
+
+          description = `Served as ${role} at ${organization}, ${rawDesc ? 'contributing to ' + rawDesc + '. ' : ''}taking end-to-end ownership of critical responsibilities and collaborating closely with cross-functional stakeholders to ensure project objectives were achieved on schedule and within quality standards. ${skillSentence} Demonstrated professional judgment and initiative in resolving technical challenges, consistently adding measurable value to the organisation.`.trim();
+        }
+      }
 
       let type: 'employment' | 'academic' | 'sabbatical' | 'project' = 'employment';
       const orgLower = organization.toLowerCase();
@@ -511,6 +827,7 @@ export function analyzeResumeText(text: string): ParsedResult {
 
   if (nodes.length === 0) {
     const defaultRole = recommendedRole === 'AI Architect' ? 'AI Developer' : (recommendedRole === 'Frontend Architect' ? 'Frontend Developer' : 'Software Professional');
+    const fallbackSkillSummary = detectedSkills.slice(0, 3).join(', ') || 'software engineering and technical systems';
     nodes.push({
       id: `parsed-profile-${Date.now()}`,
       role: defaultRole,
@@ -518,7 +835,7 @@ export function analyzeResumeText(text: string): ParsedResult {
       type: 'employment',
       startDate: '2024-01',
       endDate: 'Present',
-      description: text.substring(0, 150) + (text.length > 150 ? '...' : ''),
+      description: `Demonstrated expertise as a ${defaultRole} with a strong foundation in ${fallbackSkillSummary}. Applied technical knowledge and professional judgment to deliver quality outcomes across diverse projects, collaborating effectively with cross-functional stakeholders. Consistently maintained high standards of technical excellence, analytical problem-solving, and continuous learning to stay current with emerging industry trends and best practices.`,
       skills: detectedSkills.slice(0, 4).map(s => ({ name: s, level: 'Rank-1' as const }))
     });
   }
@@ -579,9 +896,9 @@ export function analyzeResumeText(text: string): ParsedResult {
   };
 }
 
-// ──────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // PEER COHORT & ANONYMIZED TRAJECTORY TYPES & ALGORITHM
-// ──────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export type CompanyTier = 'Tier-1 Tech Giant' | 'Tier-2 Corporate' | 'Tier-3 Growth-Stage' | 'Tier-4 Startup' | 'Tier-5 Freelance/Agency';
 
@@ -609,7 +926,7 @@ export interface CohortPeerSummary {
   reachedTarget: boolean;
   totalExperienceMonths: number;
   geo: string;
-  pathSteps: string[];     // e.g. ["Tier-4 Startup SE (18m)", "Tier-2 Corp Senior (30m)", …]
+  pathSteps: string[];     // e.g. ["Tier-4 Startup SE (18m)", "Tier-2 Corp Senior (30m)", â€¦]
   skillCount: number;
   skills: string[];
 }
@@ -749,9 +1066,9 @@ export function analyzeCohortProgress(
   };
 }
 
-// ──────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // LIVE CV TAILORING ENGINE
-// ──────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface TailoredCV {
   summary: string;
@@ -805,13 +1122,17 @@ export function tailorCVForTarget(
 
   let matchScore = 0;
   if (requiredSkills.length > 0) {
-    matchScore = Math.round((matchedKeywords.length / requiredSkills.length) * 100);
+    const sumWeights = (skills: string[]) => skills.reduce((sum, s) => sum + (1 + (SKILL_DAG[s]?.rank ?? 0)), 0);
+    const wMatched = sumWeights(matchedKeywords);
+    const wRequired = sumWeights(requiredSkills);
+    matchScore = wRequired > 0 ? Math.round((wMatched / wRequired) * 100) : 0;
     // Give a small boost if they have experience in the exact same field
     const hasRoleOverlap = nodes.some(n => n.role.toLowerCase().includes(normTarget) || normTarget.includes(n.role.toLowerCase()));
     if (hasRoleOverlap) matchScore = Math.min(100, matchScore + 10);
+    matchScore = Math.min(100, matchScore);
   }
 
-  logs.push(`[Live CV] Match score calculated at ${matchScore}% based on ${matchedKeywords.length}/${requiredSkills.length} intent skills.`);
+  logs.push(`[Live CV] Weighted Jaccard TSMI score calculated at ${matchScore}% based on skill rank dependencies.`);
 
   // Helper function to highlight matches that are already in the text (preserving honesty)
   const highlightText = (text: string, keywords: string[]): string => {
@@ -888,4 +1209,5 @@ export function tailorCVForTarget(
     logs
   };
 }
+
 
