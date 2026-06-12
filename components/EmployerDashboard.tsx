@@ -27,6 +27,10 @@ interface Applicant {
   degreeAligned?: boolean;
   academicScore: number; // CGPA out of 4.0
   university: string;
+  lastInstitution: string;
+  experienceLevel: 'fresh' | 'experienced';
+  jobType?: 'Full-time' | 'Part-time' | 'Internship';
+  resumeText: string; // Comprehensive professional summary for AI semantic search
 }
 
 const TOP_50_UNIVERSITIES = [
@@ -35,6 +39,184 @@ const TOP_50_UNIVERSITIES = [
   'Monash University',
   'Nanyang Technological University'
 ];
+
+export const CAREEROS_JOBS = [
+  { id: 'cos-job-1', role: 'Senior Frontend Engineer', type: 'Full-time' as const, reqSkills: ['Advanced React', 'TypeScript', 'HTML/CSS'] },
+  { id: 'cos-job-2', role: 'AI Architect', type: 'Full-time' as const, reqSkills: ['Deep Learning', 'PyTorch', 'System Architecture'] },
+  { id: 'cos-job-3', role: 'Data Science Intern', type: 'Internship' as const, reqSkills: ['Python', 'Linear Algebra', 'Linux'] },
+  { id: 'cos-job-4', role: 'Technical Support', type: 'Part-time' as const, reqSkills: ['Communication', 'Linux', 'Computer Networking'] },
+  { id: 'cos-job-5', role: 'Product Manager', type: 'Full-time' as const, reqSkills: ['Agile Delivery', 'Product Strategy', 'Communication'] },
+];
+
+const MOCK_NAMES = [
+  "Ahmad Rafiq", "Sarah Lim", "Vikram Naidu", "Chloe Tan", "Zulhasnan Kamil", "Elena Rostova", "Marcus Tan",
+  "Nurul Huda", "Wei Chen", "Arun Kumar", "Maya Ali", "Jason Lee", "Siti Nurhaliza", "Devan Raj", "Rachel Wong",
+  "Khairul Anwar", "Jessica Tan", "Prakash Rao", "Aisyah Rahman", "Kevin Chong", "Nadia Hassan", "Brian Ng",
+  "Fatima Zahra", "Alex Lim", "Priya Sharma", "Omar Abdullah", "Michelle Yeoh", "Tengku Amir", "Cindy Ooi",
+  "Zhi Hao", "Amina Binti", "David Teo", "Kumaravel", "Grace Fernandez", "Hafizuddin", "Lily Ong",
+  "Suresh Krishnan", "Syuhada", "Benny Lau", "Anand Singh", "Nor Azian", "Ivy Chew", "Rajesh", "Amira",
+  "Kenji", "Farhana", "Vincent", "Salmah", "Dennis", "Zara"
+];
+
+const TOP_MALAYSIAN_COMPANIES = [
+  'Petronas', 'Maybank', 'CIMB Group', 'Tenaga Nasional', 'Maxis',
+  'Axiata', 'Grab', 'AirAsia', 'Telekom Malaysia (TM)', 'Genting Group'
+];
+
+function generateCareerOSApplicants(topUnis: string[]): Applicant[] {
+  const applicants: Applicant[] = [];
+
+  // deterministic PRNG to keep the mock data stable across renders
+  let seed = 12345;
+  const random = () => {
+    const x = Math.sin(seed++) * 10000;
+    return x - Math.floor(x);
+  };
+
+  for (let i = 0; i < 50; i++) {
+    const job = CAREEROS_JOBS[i % CAREEROS_JOBS.length];
+
+    // Pick name randomly
+    const name = MOCK_NAMES[Math.floor(random() * MOCK_NAMES.length)];
+
+    // Pick university with bias towards top unis
+    const isTopUni = random() > 0.4; // 60% from top 50
+    let uni = "";
+    if (isTopUni) {
+      uni = topUnis[Math.floor(random() * topUnis.length)];
+    } else {
+      const otherUnis = ["Asia Pacific University", "Taylor's University", "Multimedia University", "Sunway University", "Universiti Teknologi MARA"];
+      uni = otherUnis[Math.floor(random() * otherUnis.length)];
+    }
+
+    const company = TOP_MALAYSIAN_COMPANIES[Math.floor(random() * TOP_MALAYSIAN_COMPANIES.length)];
+
+    // Determine experience level based on job type. Interns are always fresh. 
+    // Part-time and Full-time can be a mix, but heavily biased towards experienced for Senior roles.
+    let experienceLevel: 'fresh' | 'experienced' = 'experienced';
+    if (job.type === 'Internship') {
+      experienceLevel = 'fresh';
+    } else if (job.role.includes('Senior') || job.role.includes('Architect') || job.role.includes('Manager')) {
+      experienceLevel = 'experienced';
+    } else {
+      experienceLevel = random() > 0.3 ? 'experienced' : 'fresh'; // 70% experienced
+    }
+
+    const lastInstitution = experienceLevel === 'fresh' ? uni : company;
+
+    // Generate realistic skills met.
+    const skillCount = job.reqSkills.length;
+    let metCount = 0;
+    const metSkills: string[] = [];
+    const missingSkills: string[] = [];
+
+    job.reqSkills.forEach(skill => {
+      // 70% chance to have a skill
+      if (random() > 0.3) {
+        metSkills.push(skill);
+        metCount++;
+      } else {
+        missingSkills.push(skill);
+      }
+    });
+
+    // If they missed everything, give them at least one so it's not 0
+    if (metCount === 0 && skillCount > 0) {
+      metSkills.push(job.reqSkills[0]);
+      missingSkills.splice(missingSkills.indexOf(job.reqSkills[0]), 1);
+      metCount = 1;
+    }
+
+    // Realistic match score based on skills, experience alignment, and some randomness
+    let baseScore = (metCount / skillCount) * 70; // up to 70 points from skills
+    // up to 15 points from university
+    if (isTopUni) baseScore += 10 + (random() * 5);
+    // up to 15 points from randomness/other factors
+    baseScore += random() * 15;
+
+    const matchScore = Math.max(40, Math.min(Math.round(baseScore), 98)); // cap between 40 and 98
+
+    // Realistic CGPA: Normal distribution approximation: 2.8 to 4.0
+    const academicScore = Math.round((2.8 + (random() * 1.2)) * 100) / 100;
+
+    // Realistic trajectory
+    let trajectory = "";
+    if (experienceLevel === 'fresh') {
+      const pastRoles = ["Research Intern", "Student Developer", "Freelance Developer", "Final Year Project"];
+      const degrees = ["BSc Computer Science", "BEng Software Engineering", "IT Degree"];
+      const degree = degrees[Math.floor(random() * degrees.length)];
+      const role = pastRoles[Math.floor(random() * pastRoles.length)];
+      trajectory = `${uni} (${degree}) ➔ ${role}`;
+    } else {
+      const pastRoles1 = ["Junior Developer", "Associate", "Analyst", "Intern"];
+      const pastRoles2 = ["Software Engineer", "Data Analyst", "Consultant", "Developer"];
+      const pastRoles3 = ["Senior Engineer", "Lead Developer", "Specialist", "Manager"];
+
+      const comp1 = TOP_MALAYSIAN_COMPANIES[Math.floor(random() * TOP_MALAYSIAN_COMPANIES.length)];
+      let comp2 = TOP_MALAYSIAN_COMPANIES[Math.floor(random() * TOP_MALAYSIAN_COMPANIES.length)];
+      if (comp2 === comp1) comp2 = "CIMB Group"; // avoid exact immediate duplicate
+
+      const role1 = pastRoles1[Math.floor(random() * pastRoles1.length)];
+      const role2 = pastRoles2[Math.floor(random() * pastRoles2.length)];
+      const role3 = pastRoles3[Math.floor(random() * pastRoles3.length)];
+
+      trajectory = `${comp1} (${role1}) ➔ ${comp2} (${role2}) ➔ ${company} (${role3})`;
+    }
+
+    // Comprehensive resume text for AI semantic search
+    let resumeText = '';
+    const achievementVerbs = ['Delivered', 'Spearheaded', 'Architected', 'Optimised', 'Implemented', 'Designed', 'Led', 'Built', 'Developed', 'Launched'];
+    const verb = achievementVerbs[Math.floor(random() * achievementVerbs.length)];
+
+    if (experienceLevel === 'fresh') {
+      const freshAchievements = [
+        `Built a real-time chatbot using Python and transformer models for final year project, achieving an F1-score of 0.89 on the Malaysian Customer Service dataset.`,
+        `Developed a full-stack web application with React and Node.js for a hackathon, integrating a REST API and deploying on AWS EC2.`,
+        `Contributed to open-source projects in machine learning and natural language processing. Published a research paper on sentiment analysis of Malaysian social media text.`,
+        `Designed and deployed a microservices-based inventory system using Docker and Docker Compose for a university capstone project, reducing system downtime by 40%.`,
+        `Implemented a data pipeline with Apache Airflow to automate data ingestion for a university research lab, processing over 2 million records weekly.`
+      ];
+      const freshLines = freshAchievements[Math.floor(random() * freshAchievements.length)];
+      resumeText = `${name} is a motivated fresh graduate from ${uni} pursuing a ${trajectory.split(' ➔ ')[0].split('(')[1]?.replace(')', '') || 'Computer Science'} degree (CGPA: ${academicScore.toFixed(2)}/4.0). ${freshLines} Possesses strong foundations in ${metSkills.join(', ')} and eager to contribute to a fast-paced, innovative environment. Based in Kuala Lumpur, Malaysia.`;
+    } else {
+      const expAchievements = [
+        `Architected a microservices platform on Kubernetes and Docker, scaling backend throughput to handle 500,000 daily active users.`,
+        `Led a cross-functional agile team of 8 engineers at ${company}, delivering a new fintech API platform 2 weeks ahead of schedule.`,
+        `Spearheaded the migration of a monolithic e-commerce application to a cloud-native architecture on Microsoft Azure, reducing infrastructure costs by 35%.`,
+        `Developed and shipped three key product features using React and TypeScript, improving user retention by 22% as measured by A/B testing.`,
+        `Built a real-time fraud detection pipeline using Apache Kafka and Python, processing over 1 million transactions per day with sub-50ms latency.`,
+        `Managed a portfolio of B2B enterprise clients, conducting stakeholder management and roadmap planning sessions using Agile delivery methodologies.`
+      ];
+      const expLines = expAchievements[Math.floor(random() * expAchievements.length)];
+      resumeText = `${name} is an experienced ${job.role} professional based in Malaysia, with a career spanning multiple leading Malaysian companies including ${trajectory.split(' ➔ ').slice(0, 2).map(s => s.split(' (')[0]).join(' and ')}. ${expLines} Core competencies include ${metSkills.join(', ')}. Holds a degree from ${uni} with a CGPA of ${academicScore.toFixed(2)}/4.0. Currently seeking senior-level opportunities in the Malaysian tech ecosystem.`;
+    }
+
+    applicants.push({
+      id: `cos-app-${i}`,
+      name,
+      roleApplied: job.role,
+      company: 'CareerOS',
+      matchScore,
+      skillsMetCount: metCount,
+      skillsTotalCount: skillCount,
+      metSkills,
+      missingSkills,
+      jobId: job.id,
+      status: 'applied',
+      degreeAligned: random() > 0.25, // 75% aligned
+      academicScore,
+      university: uni,
+      trajectory,
+      lastInstitution,
+      experienceLevel,
+      jobType: job.type,
+      resumeText
+    });
+  }
+
+  // Sort by match score descending to look naturally curated
+  return applicants.sort((a, b) => b.matchScore - a.matchScore);
+}
 
 export default function EmployerDashboard() {
   const {
@@ -57,6 +239,14 @@ export default function EmployerDashboard() {
   const [pastPosition, setPastPosition] = useState<string>('');
   const [requireTopUniversity, setRequireTopUniversity] = useState<boolean>(false);
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
+  const [aiResumeKeywords, setAiResumeKeywords] = useState<string[]>([]);
+  const [requireDegreeAlignment, setRequireDegreeAlignment] = useState<boolean>(false);
+  const [requireFullMatch, setRequireFullMatch] = useState<boolean>(false);
+  const [experienceLevel, setExperienceLevel] = useState<'all' | 'fresh' | 'experienced'>('all');
+
+  // Job Type & Job Openings selection
+  const [selectedJobId, setSelectedJobId] = useState<string | 'all'>('all');
+  const [jobTypeFilter, setJobTypeFilter] = useState<'all' | 'Full-time' | 'Part-time' | 'Internship'>('all');
 
   // Sync state from URL on mount
   React.useEffect(() => {
@@ -71,6 +261,13 @@ export default function EmployerDashboard() {
         const k = params.get('kws');
         setSelectedKeywords(k ? k.split(',') : []);
       }
+      if (params.has('resKws')) {
+        const r = params.get('resKws');
+        setAiResumeKeywords(r ? r.split(',') : []);
+      }
+      if (params.has('degAlign')) setRequireDegreeAlignment(params.get('degAlign') === 'true');
+      if (params.has('fullMatch')) setRequireFullMatch(params.get('fullMatch') === 'true');
+      if (params.has('expLvl')) setExperienceLevel(params.get('expLvl') as any || 'all');
     }
   }, []);
 
@@ -100,18 +297,23 @@ export default function EmployerDashboard() {
       updateParam('past', pastPosition || null);
       updateParam('topUni', requireTopUniversity ? 'true' : null);
       updateParam('kws', selectedKeywords.length > 0 ? selectedKeywords.join(',') : null);
+      updateParam('resKws', aiResumeKeywords.length > 0 ? aiResumeKeywords.join(',') : null);
+      updateParam('degAlign', requireDegreeAlignment ? 'true' : null);
+      updateParam('fullMatch', requireFullMatch ? 'true' : null);
+      updateParam('expLvl', experienceLevel !== 'all' ? experienceLevel : null);
 
       if (changed) {
         window.history.pushState(null, '', `?${params.toString()}`);
       }
     }
-  }, [candidateSearch, minMatchScore, minCgpa, pastPosition, requireTopUniversity, selectedKeywords]);
+  }, [candidateSearch, minMatchScore, minCgpa, pastPosition, requireTopUniversity, selectedKeywords, aiResumeKeywords, requireDegreeAlignment, requireFullMatch, experienceLevel]);
 
   // AI Prompt Search States
   const [aiPrompt, setAiPrompt] = useState<string>('');
   const [isAiLoading, setIsAiLoading] = useState<boolean>(false);
   const [aiExplanation, setAiExplanation] = useState<string | null>(null);
   const [aiFiltersActive, setAiFiltersActive] = useState<boolean>(false);
+  const [aiMatchedIds, setAiMatchedIds] = useState<string[] | null>(null); // null = not active, [] = no results
 
   // Selected Applicant Inspection Drawer State
   const [activeDrawerTab, setActiveDrawerTab] = useState<'timeline' | 'skills' | 'resume'>('timeline');
@@ -164,145 +366,40 @@ export default function EmployerDashboard() {
           trajectory: candidateNodes
             .filter(n => n.type === 'employment')
             .map(n => `${n.organization} (${n.role})`)
-            .join(' ➔ ') || 'No employment history'
+            .join(' ➔ ') || 'No employment history',
+          lastInstitution: (() => {
+            const empNodes = candidateNodes.filter(n => n.type === 'employment');
+            if (empNodes.length > 0) {
+              const lastEmp = empNodes[empNodes.length - 1];
+              if (!lastEmp.role.toLowerCase().includes('intern')) return lastEmp.organization;
+              if (empNodes.length > 1) {
+                const prevEmp = empNodes[empNodes.length - 2];
+                if (!prevEmp.role.toLowerCase().includes('intern')) return prevEmp.organization;
+              }
+            }
+            return candidateUni;
+          })(),
+          experienceLevel: candidateNodes.filter(n => n.type === 'employment' && !n.role.toLowerCase().includes('intern')).length > 0 ? 'experienced' : 'fresh',
+          resumeText: [
+            `${candidateName} is a Malaysian-based professional applying to the ${job.role} position.`,
+            candidateNodes.filter(n => n.type === 'employment').map(n => `Worked at ${n.organization} as ${n.role}.`).join(' '),
+            `Skills include: ${matchInfo.met.join(', ')}.`,
+            academicNode ? `Graduated from ${academicNode.organization}.` : ''
+          ].filter(Boolean).join(' ')
         });
       }
     });
 
-    // Add mock applicants targeting various roles in our 100 jobs database
-    list.push({
-      id: 'applicant-1',
-      name: 'Ahmad Rafiq',
-      roleApplied: 'AI Architect',
-      company: 'Petronas Digital',
-      matchScore: 65,
-      skillsMetCount: 4,
-      skillsTotalCount: 6,
-      metSkills: ['Deep Learning', 'PyTorch', 'Python', 'Linear Algebra'],
-      missingSkills: ['AI Architect', 'System Architecture', 'Distributed Systems'],
-      jobId: 'job-1',
-      status: 'applied',
-      degreeAligned: true,
-      academicScore: 3.45,
-      university: 'Universiti Teknologi Malaysia',
-      trajectory: 'MIMOS (Senior SE) ➔ Grab (ML Engineer)'
-    });
-
-    list.push({
-      id: 'applicant-2',
-      name: 'Sarah Lim',
-      roleApplied: 'Frontend Architect',
-      company: 'Grab Tech',
-      matchScore: 85,
-      skillsMetCount: 6,
-      skillsTotalCount: 7,
-      metSkills: ['Advanced React', 'State Management', 'TypeScript', 'JavaScript', 'HTML/CSS', 'Web Performance'],
-      missingSkills: ['Frontend Architect', 'Performance Tuning', 'Browser Engines'],
-      jobId: 'job-2',
-      status: 'interviewing',
-      degreeAligned: true,
-      academicScore: 3.92,
-      university: 'National University of Singapore',
-      trajectory: 'Carsome (Frontend Dev) ➔ ShopBack (Senior Frontend)'
-    });
-
-    list.push({
-      id: 'applicant-3',
-      name: 'Vikram Naidu',
-      roleApplied: 'Senior Data Engineer',
-      company: 'Axiata Digital',
-      matchScore: 90,
-      skillsMetCount: 5,
-      skillsTotalCount: 6,
-      metSkills: ['Distributed Systems', 'Python', 'Linux', 'Cloud Computing', 'Apache Spark'],
-      missingSkills: ['Data Pipelines'],
-      jobId: 'job-6',
-      status: 'applied',
-      degreeAligned: true,
-      academicScore: 3.75,
-      university: 'Monash University',
-      trajectory: 'Maxis (Data Engineer) ➔ Celcom (Senior Data Engineer)'
-    });
-
-    list.push({
-      id: 'applicant-4',
-      name: 'Chloe Tan',
-      roleApplied: 'Senior React Developer',
-      company: 'Carsome Tech',
-      matchScore: 75,
-      skillsMetCount: 4,
-      skillsTotalCount: 5,
-      metSkills: ['Advanced React', 'JavaScript', 'HTML/CSS', 'TypeScript'],
-      missingSkills: ['State Management'],
-      jobId: 'job-5',
-      status: 'rejected',
-      degreeAligned: false,
-      academicScore: 3.10,
-      university: "Taylor's University",
-      trajectory: 'Fave (Web Developer) ➔ Zalora (Frontend Dev)'
-    });
-
-    list.push({
-      id: 'applicant-5',
-      name: 'Zulhasnan Kamil',
-      roleApplied: 'Cloud Infrastructure Architect',
-      company: 'TM ONE',
-      matchScore: 80,
-      skillsMetCount: 4,
-      skillsTotalCount: 5,
-      metSkills: ['Cloud Computing', 'Linux', 'Distributed Systems', 'System Architecture'],
-      missingSkills: ['AWS'],
-      jobId: 'job-7',
-      status: 'offered',
-      degreeAligned: true,
-      academicScore: 3.65,
-      university: 'TM College',
-      trajectory: 'TM Networks (Network Specialist) ➔ Jaring (Cloud Eng)'
-    });
-
-    list.push({
-      id: 'applicant-6',
-      name: 'Elena Rostova',
-      roleApplied: 'AI Engineer',
-      company: 'Tech Giant (FAANG-tier)',
-      matchScore: 95,
-      skillsMetCount: 5,
-      skillsTotalCount: 5,
-      metSkills: ['Python', 'Deep Learning', 'PyTorch', 'Linux', 'Cloud Computing'],
-      missingSkills: [],
-      jobId: 'job-gen-0001',
-      status: 'interviewing',
-      degreeAligned: true,
-      academicScore: 3.98,
-      university: 'Nanyang Technological University',
-      trajectory: 'Research Intern (NUS) ➔ ML Fellow (A*STAR)'
-    });
-
-    list.push({
-      id: 'applicant-7',
-      name: 'Marcus Tan',
-      roleApplied: 'Technical Lead',
-      company: 'Digital Banking Group',
-      matchScore: 70,
-      skillsMetCount: 3,
-      skillsTotalCount: 5,
-      metSkills: ['TypeScript', 'Software Engineering', 'System Design'],
-      missingSkills: ['Technical Leadership', 'Agile Delivery'],
-      jobId: 'job-gen-0025',
-      status: 'applied',
-      degreeAligned: false,
-      academicScore: 3.25,
-      university: 'Asia Pacific University',
-      trajectory: 'Shopee (SE III) ➔ Grab (Senior SE)'
-    });
+    // Add 50 mock applicants targeting CareerOS active openings
+    list.push(...generateCareerOSApplicants(TOP_50_UNIVERSITIES));
 
     return list;
   }, [applications, jobs, candidateSkills, candidateNodes, candidateName]);
 
   // Compute recruitment phase counts based on active filters (excluding phase filter itself)
   const phaseCounts = useMemo(() => {
+    const isAiSemanticMode = aiFiltersActive && aiMatchedIds !== null;
     const base = allApplicants.filter((app) => {
-      // 1. Search Query filter (Name, applied role, or company)
       const q = candidateSearch.toLowerCase().trim();
       if (q && !(
         app.name.toLowerCase().includes(q) ||
@@ -310,93 +407,90 @@ export default function EmployerDashboard() {
         app.company.toLowerCase().includes(q)
       )) return false;
 
-      // 2. Minimum Match Relevance Score Slider
       if (app.matchScore < minMatchScore) return false;
+      if (selectedJobId !== 'all' && app.jobId !== selectedJobId) return false;
+      if (jobTypeFilter !== 'all' && app.jobType !== jobTypeFilter) return false;
 
-      // 3. CGPA score threshold
+      if (isAiSemanticMode) return aiMatchedIds.includes(app.id);
+
       if (minCgpa > 0 && app.academicScore < minCgpa) return false;
-
-      // 4. University top alignment
-      if (requireTopUniversity) {
-        const isTop = TOP_50_UNIVERSITIES.includes(app.university);
-        if (!isTop) return false;
-      }
-
-      // 5. Past position query
+      if (requireTopUniversity && !TOP_50_UNIVERSITIES.includes(app.university)) return false;
       if (pastPosition) {
         const hasPastMatch = app.trajectory.toLowerCase().includes(pastPosition.toLowerCase()) ||
           app.roleApplied.toLowerCase().includes(pastPosition.toLowerCase()) ||
           app.company.toLowerCase().includes(pastPosition.toLowerCase());
         if (!hasPastMatch) return false;
       }
-
-      // 6. Selected keywords toggle
-      if (selectedKeywords.length > 0) {
-        const hasAllKeywords = selectedKeywords.every((kw) => app.metSkills.includes(kw));
-        if (!hasAllKeywords) return false;
-      }
+      if (selectedKeywords.length > 0 && !selectedKeywords.every(kw => app.metSkills.includes(kw))) return false;
+      if (requireDegreeAlignment && !app.degreeAligned) return false;
+      if (requireFullMatch && app.missingSkills.length > 0) return false;
+      if (experienceLevel !== 'all' && app.experienceLevel !== experienceLevel) return false;
 
       return true;
     });
 
-    const counts = {
-      all: base.length,
-      applied: 0,
-      interviewing: 0,
-      offered: 0,
-      rejected: 0
-    };
-
+    const counts = { all: base.length, applied: 0, interviewing: 0, offered: 0, rejected: 0 };
     base.forEach(app => {
-      if (app.status in counts) {
-        counts[app.status as 'applied' | 'interviewing' | 'offered' | 'rejected'] += 1;
-      }
+      if (app.status in counts) counts[app.status as 'applied' | 'interviewing' | 'offered' | 'rejected'] += 1;
     });
-
     return counts;
-  }, [allApplicants, candidateSearch, minMatchScore, minCgpa, requireTopUniversity, pastPosition, selectedKeywords]);
+  }, [allApplicants, candidateSearch, minMatchScore, minCgpa, requireTopUniversity, pastPosition, selectedKeywords, requireDegreeAlignment, requireFullMatch, experienceLevel, selectedJobId, jobTypeFilter, aiFiltersActive, aiMatchedIds]);
 
   // Execute AI Search Filter API request
   const handleAiFilterSearch = async () => {
     if (!aiPrompt.trim()) return;
     setIsAiLoading(true);
+    // Clear stale URL params that would conflict with AI semantic mode
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      ['past', 'kws', 'resKws', 'cgpa', 'topUni', 'degAlign', 'fullMatch', 'expLvl'].forEach(k => params.delete(k));
+      window.history.replaceState(null, '', `?${params.toString()}`);
+    }
     try {
+      // Build compact candidate index for the LLM
+      const candidateContext = allApplicants.map(app => ({
+        id: app.id,
+        name: app.name,
+        role: app.roleApplied,
+        jobType: app.jobType || '',
+        experienceLevel: app.experienceLevel,
+        skills: app.metSkills,
+        missingSkills: app.missingSkills,
+        cgpa: app.academicScore,
+        university: app.university,
+        trajectory: app.trajectory,
+        lastInstitution: app.lastInstitution,
+        resumeText: app.resumeText || ''
+      }));
+
       const res = await fetch('/api/employer/filter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: aiPrompt })
+        body: JSON.stringify({ prompt: aiPrompt, candidates: candidateContext })
       });
       const data = await res.json();
 
-      if (res.ok && data.success && data.filters) {
-        const filters = data.filters;
+      if (res.ok && data.success) {
+        const filters = data.filters || {};
 
-        // Auto-configure the dashboard filters based on AI extraction
-        if (filters.minCgpa !== null) {
-          setMinCgpa(filters.minCgpa);
-        } else {
-          setMinCgpa(0.0);
-        }
-
+        // Apply structured filters from AI extraction
+        setMinCgpa(filters.minCgpa ?? 0.0);
         setRequireTopUniversity(!!filters.top50University);
+        // Don't set pastPosition from AI anymore — matchedIds handles it semantically
+        setPastPosition('');
+        setSelectedKeywords(filters.skills?.length > 0 ? filters.skills : []);
+        setAiResumeKeywords(filters.resumeKeywords?.length > 0 ? filters.resumeKeywords : []);
 
-        if (filters.pastRoles && filters.pastRoles.length > 0) {
-          setPastPosition(filters.pastRoles[0]); // Take primary past company or title
-        } else {
-          setPastPosition('');
-        }
+        // Apply semantic matchedIds allowlist from LLM.
+        // Always set a non-null array when AI is active so the filter knows it's in semantic mode.
+        // An empty array means "zero genuine matches" — don't fall through to show everyone.
+        setAiMatchedIds(Array.isArray(data.matchedIds) ? data.matchedIds : []);
 
-        if (filters.skills && filters.skills.length > 0) {
-          setSelectedKeywords(filters.skills);
-        } else {
-          setSelectedKeywords([]);
-        }
-
-        setAiExplanation(filters.explanation);
+        setAiExplanation(filters.explanation || null);
         setAiFiltersActive(true);
       }
     } catch (err) {
-      // console.error('AI filter search failed:', err);
+      // silent fail
     } finally {
       setIsAiLoading(false);
     }
@@ -407,13 +501,20 @@ export default function EmployerDashboard() {
     setAiPrompt('');
     setAiExplanation(null);
     setAiFiltersActive(false);
+    setAiMatchedIds(null);
     setMinCgpa(0.0);
     setRequireTopUniversity(false);
     setPastPosition('');
     setSelectedKeywords([]);
+    setAiResumeKeywords([]);
     setMinMatchScore(0);
     setCandidateSearch('');
     setPhaseFilter('all');
+    setRequireDegreeAlignment(false);
+    setRequireFullMatch(false);
+    setExperienceLevel('all');
+    setSelectedJobId('all');
+    setJobTypeFilter('all');
   };
 
   // Select suggest query templates
@@ -423,50 +524,37 @@ export default function EmployerDashboard() {
 
   // Filter & Score Applicants based on active controls
   const processedApplicants = useMemo(() => {
+    // When AI is active with matched IDs, use them as the primary semantic filter.
+    // Only structural/UI controls (job tab, phase tab, search bar, match score) still apply on top.
+    const isAiSemanticMode = aiFiltersActive && aiMatchedIds !== null;
+
     const results = allApplicants.map((app) => {
-      // If AI filters are active, calculate a dynamic AI Match Score
       let score = app.matchScore;
 
-      if (aiFiltersActive) {
-        let skillsPoints = 0;
-        if (selectedKeywords.length > 0) {
-          const matchedSkills = selectedKeywords.filter((kw) => app.metSkills.includes(kw));
-          skillsPoints = (matchedSkills.length / selectedKeywords.length) * 50;
-        } else {
-          skillsPoints = 50; // no skills required in prompt, give full score
-        }
-
-        let cgpaPoints = 20;
-        if (minCgpa > 0) {
-          cgpaPoints = app.academicScore >= minCgpa ? 20 : (app.academicScore / minCgpa) * 20;
-        }
-
-        let uniPoints = 15;
-        if (requireTopUniversity) {
-          const isTop = TOP_50_UNIVERSITIES.includes(app.university);
-          uniPoints = isTop ? 15 : 0;
-        }
-
-        let pastRolePoints = 15;
-        if (pastPosition) {
-          const matchedRole = app.trajectory.toLowerCase().includes(pastPosition.toLowerCase()) ||
-            app.roleApplied.toLowerCase().includes(pastPosition.toLowerCase()) ||
-            app.company.toLowerCase().includes(pastPosition.toLowerCase());
-          pastRolePoints = matchedRole ? 15 : 0;
-        }
-
+      if (isAiSemanticMode) {
+        // Score = % of AI-matched position. Top of list if in aiMatchedIds.
+        const rank = aiMatchedIds.indexOf(app.id);
+        score = rank >= 0 ? Math.max(50, 98 - rank * 2) : app.matchScore;
+      } else if (aiFiltersActive) {
+        // AI active but no matchedIds — score by manual filter criteria
+        let skillsPoints = selectedKeywords.length > 0
+          ? (selectedKeywords.filter(kw => app.metSkills.includes(kw)).length / selectedKeywords.length) * 50
+          : 50;
+        let cgpaPoints = minCgpa > 0 ? (app.academicScore >= minCgpa ? 20 : (app.academicScore / minCgpa) * 20) : 20;
+        let uniPoints = requireTopUniversity ? (TOP_50_UNIVERSITIES.includes(app.university) ? 15 : 0) : 15;
+        let pastRolePoints = pastPosition
+          ? (app.trajectory.toLowerCase().includes(pastPosition.toLowerCase()) || app.roleApplied.toLowerCase().includes(pastPosition.toLowerCase()) ? 15 : 0)
+          : 15;
         score = Math.round(skillsPoints + cgpaPoints + uniPoints + pastRolePoints);
       }
 
-      return {
-        ...app,
-        matchScore: score
-      };
+      return { ...app, matchScore: score };
     });
 
-    // Apply Filter parameters
     return results.filter((app) => {
-      // 1. Search Query filter (Name, applied role, or company)
+      // --- Structural UI filters (always applied, even in AI mode) ---
+
+      // Search box (name / role / company)
       const q = candidateSearch.toLowerCase().trim();
       if (q && !(
         app.name.toLowerCase().includes(q) ||
@@ -474,38 +562,57 @@ export default function EmployerDashboard() {
         app.company.toLowerCase().includes(q)
       )) return false;
 
-      // 2. Minimum Match Relevance Score Slider
+      // Match score slider
       if (app.matchScore < minMatchScore) return false;
 
-      // 3. Pipeline Stage
+      // Pipeline phase tab
       if (phaseFilter !== 'all' && app.status !== phaseFilter) return false;
 
-      // 4. CGPA score threshold
-      if (minCgpa > 0 && app.academicScore < minCgpa) return false;
+      // Job opening sidebar selection
+      if (selectedJobId !== 'all' && app.jobId !== selectedJobId) return false;
 
-      // 5. University top alignment
-      if (requireTopUniversity) {
-        const isTop = TOP_50_UNIVERSITIES.includes(app.university);
-        if (!isTop) return false;
+      // Job type tab
+      if (jobTypeFilter !== 'all' && app.jobType !== jobTypeFilter) return false;
+
+      // --- AI Semantic Mode: only the LLM allowlist applies ---
+      if (isAiSemanticMode) {
+        return aiMatchedIds.includes(app.id);
       }
 
-      // 6. Past position query
+      // --- Manual Sidebar Filters (only when AI is not in semantic mode) ---
+
+      // CGPA threshold
+      if (minCgpa > 0 && app.academicScore < minCgpa) return false;
+
+      // Top university requirement
+      if (requireTopUniversity && !TOP_50_UNIVERSITIES.includes(app.university)) return false;
+
+      // Past position / company text search
       if (pastPosition) {
-        const hasPastMatch = app.trajectory.toLowerCase().includes(pastPosition.toLowerCase()) ||
+        const hasPastMatch =
+          app.trajectory.toLowerCase().includes(pastPosition.toLowerCase()) ||
           app.roleApplied.toLowerCase().includes(pastPosition.toLowerCase()) ||
           app.company.toLowerCase().includes(pastPosition.toLowerCase());
         if (!hasPastMatch) return false;
       }
 
-      // 7. Selected keywords toggle
+      // Skill keyword tags
       if (selectedKeywords.length > 0) {
-        const hasAllKeywords = selectedKeywords.every((kw) => app.metSkills.includes(kw));
-        if (!hasAllKeywords) return false;
+        if (!selectedKeywords.every(kw => app.metSkills.includes(kw))) return false;
       }
 
+      // Degree alignment
+      if (requireDegreeAlignment && !app.degreeAligned) return false;
+
+      // Full skill match
+      if (requireFullMatch && app.missingSkills.length > 0) return false;
+
+      // Experience level
+      if (experienceLevel !== 'all' && app.experienceLevel !== experienceLevel) return false;
+
       return true;
-    }).sort((a, b) => b.matchScore - a.matchScore); // Sort best matches to top
-  }, [allApplicants, candidateSearch, minMatchScore, phaseFilter, minCgpa, requireTopUniversity, pastPosition, selectedKeywords, aiFiltersActive]);
+    }).sort((a, b) => b.matchScore - a.matchScore);
+  }, [allApplicants, candidateSearch, minMatchScore, phaseFilter, minCgpa, requireTopUniversity, pastPosition, selectedKeywords, aiFiltersActive, aiMatchedIds, requireDegreeAlignment, requireFullMatch, experienceLevel, selectedJobId, jobTypeFilter]);
 
   // Selected inspected candidate summary
   const selectedApplicant = useMemo(() => {
@@ -539,13 +646,21 @@ export default function EmployerDashboard() {
   return (
     <div className="flex flex-col gap-6 relative">
 
-      {/* Brand Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
-        <div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-900">Talent Assessment Center</h2>
-          <p className="text-[12px] text-slate-500 mt-1 max-w-lg">
-            Audit matching scores, evaluate academic CGPA credentials, extract skills with Gemini search, and manage candidate pathways.
-          </p>
+      {/* Premium ATS Brand Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6">
+        <div className="flex items-center gap-4">
+          <div>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <h2 className="text-2xl font-black tracking-tight text-slate-900">Employer Portal</h2>
+              <div className="flex items-center gap-1.5 bg-blue-50/80 border border-blue-100 px-2.5 py-1 rounded-md text-[10px] font-bold text-blue-700 w-fit">
+                <span className="flex h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                Viewing as: CareerOS HR
+              </div>
+            </div>
+            <p className="text-[13px] font-medium text-slate-500 mt-0.5">
+              Intelligent applicant tracking. Advanced AI Search.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -609,125 +724,202 @@ export default function EmployerDashboard() {
       </div>
 
 
-      {/* AI Candidate Search Console */}
-      <div className="ai-search-console rounded-2xl p-5 shadow-2xs relative overflow-hidden flex flex-col gap-3.5 border">
-        {/* Glow grid background */}
-        <div className="absolute inset-0 ai-search-grid pointer-events-none"></div>
 
-        <div className="relative z-10 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded-lg bg-blue-600 flex items-center justify-center text-white">
-              <Sparkles className="h-3.5 w-3.5" />
-            </div>
-            <div>
-              <h3 className="text-xs font-black ai-search-title tracking-tight uppercase">AI Search Assistant</h3>
-              <p className="text-[9.5px] ai-search-subtitle leading-none mt-0.5">Prompt target competencies and academic criteria</p>
-            </div>
+      {/* ── AI Candidate Intelligence Engine ── HERO FEATURE BLOCK ──────────── */}
+      <div className="ai-search-hero p-6 sm:p-8 flex flex-col gap-6">
 
-          </div>
-          {aiFiltersActive && (
-            <button
-              onClick={clearAiSearch}
-              className="text-[9.5px] bg-white hover:bg-slate-100 border border-slate-250 text-slate-550 hover:text-slate-850 px-2.5 py-1 rounded-lg transition-all font-bold cursor-pointer flex items-center gap-1 shadow-2xs"
-            >
-              <X className="h-3 w-3" /> Clear AI Criteria
-            </button>
-          )}
-        </div>
+        {/* Animated Glow Orbs */}
+        <div className="ai-orb-1" />
+        <div className="ai-orb-2" />
+        <div className="ai-orb-3" />
 
-        <div className="relative z-10 flex flex-col sm:flex-row gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="e.g. Find me a React developer from Monash with a CGPA > 3.6 who worked at Carsome..."
-              value={aiPrompt}
-              onChange={(e) => setAiPrompt(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleAiFilterSearch(); }}
-              className="w-full text-[11.5px] bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/10 transition-all text-slate-800 shadow-2xs font-medium"
-            />
-          </div>
-          <button
-            onClick={handleAiFilterSearch}
-            disabled={isAiLoading || !aiPrompt.trim()}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-black text-[10.5px] uppercase tracking-wider px-5 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer disabled:opacity-50 shrink-0"
-          >
-            {isAiLoading ? (
-              <>
-                <svg className="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                Processing...
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-3.5 w-3.5" />
-                Scan Applicants
-              </>
-            )}
-          </button>
-        </div>
+        <div className="relative z-10 flex flex-col gap-5">
+          {/* Top row: badge + clear button */}
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-2.5">
+              <div className="flex items-center gap-3">
+                <div className="ai-live-badge">
+                  <div className="ai-live-badge-dot" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500 dark:text-indigo-400 font-mono">AI-Powered</span>
+                </div>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono">CareerOS Engine</span>
+              </div>
 
-        {/* Quick Suggest templates */}
-        <div className="relative z-10 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[9.5px]">
-          <span className="font-semibold text-slate-400 uppercase tracking-wider font-mono">Suggested Searches:</span>
-          {[
-            'React architect from NUS with CGPA > 3.5',
-            'AI Specialist with PyTorch and Deep Learning skills from a top 50 university',
-            'Data Engineer skilled in Distributed Systems and Apache Spark who worked at Axiata'
-          ].map((text) => (
-            <button
-              key={text}
-              onClick={() => selectQueryTemplate(text)}
-              className="text-blue-600 hover:text-blue-800 bg-blue-100/40 hover:bg-blue-100/70 border border-blue-200/50 px-2 py-0.5 rounded-md transition-all cursor-pointer font-medium"
-            >
-              "{text}"
-            </button>
-          ))}
-        </div>
-
-        {/* AI criteria explanation alert */}
-        {aiFiltersActive && aiExplanation && (
-          <div className="relative z-10 bg-white/80 border border-blue-150 rounded-xl p-3 text-[11px] text-slate-700 flex items-start gap-2.5 animate-fadeIn shadow-2xs">
-            <Sparkles className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <span className="font-bold text-slate-800">Recruiter Assistant Summary:</span>
-              <p className="text-slate-600 mt-0.5 leading-relaxed font-medium">{aiExplanation}</p>
-
-              {/* Dynamic Filters parsed summary list */}
-              <div className="flex flex-wrap gap-1 mt-2.5">
-                {minCgpa > 0 && (
-                  <span className="text-[8.5px] bg-slate-100 border border-slate-200 text-slate-600 px-2 py-0.5 rounded-md font-mono font-bold">
-                    CGPA ≥ {minCgpa}
-                  </span>
-                )}
-                {requireTopUniversity && (
-                  <span className="text-[8.5px] bg-slate-100 border border-slate-200 text-slate-600 px-2 py-0.5 rounded-md font-mono font-bold">
-                    Top 50 QS University
-                  </span>
-                )}
-                {pastPosition && (
-                  <span className="text-[8.5px] bg-slate-100 border border-slate-200 text-slate-600 px-2 py-0.5 rounded-md font-mono font-bold">
-                    Past: {pastPosition}
-                  </span>
-                )}
-                {selectedKeywords.map((kw) => (
-                  <span key={kw} className="text-[8.5px] bg-blue-50 border border-blue-150 text-blue-600 px-2 py-0.5 rounded-md font-mono font-bold">
-                    {kw}
-                  </span>
-                ))}
+              <div>
+                <h2 className="text-[24px] sm:text-[28px] font-black text-slate-900 dark:text-white leading-tight tracking-tight">
+                  Find the perfect hire <br className="hidden sm:block" />
+                  <span className="ai-shimmer-text">in one sentence.</span>
+                </h2>
+                <p className="text-[13px] text-slate-600 dark:text-slate-300 mt-2 font-medium leading-relaxed max-w-lg">
+                  Too lazy to scan 50 résumés? <span className="font-bold text-slate-800 dark:text-white">Just tell us what you need.</span> Our AI reads every profile, trajectory, and skill to surface who matters.
+                </p>
               </div>
             </div>
+
+            {aiFiltersActive && (
+              <button
+                onClick={clearAiSearch}
+                className="shrink-0 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 px-3.5 py-2 rounded-xl transition-all font-bold cursor-pointer flex items-center gap-1.5 shadow-sm"
+              >
+                <X className="h-3.5 w-3.5" /> Clear Search
+              </button>
+            )}
           </div>
-        )}
+
+          {/* Search input row */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-indigo-400 pointer-events-none" />
+              <input
+                type="text"
+                id="ai-search-input"
+                placeholder='e.g. "Product Manager from NUS with banking experience and CGPA > 3.5"'
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleAiFilterSearch(); }}
+                className="ai-input w-full pl-12 pr-4 py-4 text-[13px] font-medium"
+              />
+            </div>
+            <button
+              onClick={handleAiFilterSearch}
+              disabled={isAiLoading || !aiPrompt.trim()}
+              id="ai-search-submit"
+              className="ai-submit-btn flex items-center justify-center gap-2 py-4 sm:w-auto w-full"
+            >
+              {isAiLoading ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Scanning...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  Search AI
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Suggestion chips */}
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 dark:text-indigo-300 font-mono shrink-0">Try asking:</span>
+            {[
+              { icon: '🎓', text: 'React engineer from NUS, CGPA > 3.5' },
+              { icon: '🏦', text: 'Product Manager with banking experience' },
+              { icon: '🤖', text: 'AI Architect, PyTorch skills, top 50 uni' },
+            ].map(({ icon, text }) => (
+              <button
+                key={text}
+                onClick={() => selectQueryTemplate(text)}
+                className="ai-chip"
+              >
+                <span>{icon}</span> {text}
+              </button>
+            ))}
+          </div>
+
+          {/* Results summary bar */}
+          {aiFiltersActive && aiExplanation && (
+            <div className="ai-result-banner p-4 mt-2 flex flex-col sm:flex-row sm:items-center gap-3 animate-fadeIn">
+              <div className="flex items-start gap-3 flex-1">
+                <div className="h-8 w-8 rounded-xl bg-indigo-100 border border-indigo-200 dark:bg-indigo-900/40 dark:border-indigo-500/30 flex items-center justify-center shrink-0 mt-0.5">
+                  <Sparkles className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 font-mono">AI Result</span>
+                    <span className="text-[10px] font-bold text-indigo-700 bg-indigo-100 border border-indigo-200 dark:text-indigo-300 dark:bg-indigo-500/20 dark:border-indigo-400/30 rounded-full px-2.5 py-0.5">
+                      {aiMatchedIds?.length ?? 0} candidate{(aiMatchedIds?.length ?? 0) !== 1 ? 's' : ''} matched
+                    </span>
+                  </div>
+                  <p className="text-[12px] text-slate-700 dark:text-slate-300 mt-1.5 leading-relaxed font-medium">{aiExplanation}</p>
+
+                  {/* Active filter pills */}
+                  {(minCgpa > 0 || requireTopUniversity || selectedKeywords.length > 0 || aiResumeKeywords.length > 0) && (
+                    <div className="flex flex-wrap gap-1.5 mt-2.5">
+                      {minCgpa > 0 && (
+                        <span className="text-[10px] bg-emerald-50 border border-emerald-200 text-emerald-700 dark:bg-emerald-500/10 dark:border-emerald-400/20 dark:text-emerald-400 px-2.5 py-0.5 rounded-full font-mono font-bold">CGPA ≥ {minCgpa}</span>
+                      )}
+                      {requireTopUniversity && (
+                        <span className="text-[10px] bg-amber-50 border border-amber-200 text-amber-700 dark:bg-amber-500/10 dark:border-amber-400/20 dark:text-amber-400 px-2.5 py-0.5 rounded-full font-mono font-bold">Top 50 QS</span>
+                      )}
+                      {selectedKeywords.map((kw) => (
+                        <span key={kw} className="text-[10px] bg-blue-50 border border-blue-200 text-blue-700 dark:bg-blue-500/10 dark:border-blue-400/20 dark:text-blue-400 px-2.5 py-0.5 rounded-full font-mono font-bold">{kw}</span>
+                      ))}
+                      {aiResumeKeywords.map((kw) => (
+                        <span key={kw} className="text-[10px] bg-indigo-50 border border-indigo-200 text-indigo-700 dark:bg-indigo-500/10 dark:border-indigo-400/20 dark:text-indigo-400 px-2.5 py-0.5 rounded-full font-mono font-bold">{kw}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
       </div>
+
+
+
 
       {/* Main Workspace Layout */}
       <div className="flex flex-col lg:flex-row gap-6 items-start">
 
         {/* Left Sidebar: Recruiter Filters */}
-        <aside className="w-full lg:w-72 bg-white rounded-2xl border border-slate-200 p-5 shrink-0 flex flex-col gap-5.5 shadow-2xs">
+        <aside className="w-full lg:w-72 bg-white rounded-2xl border border-slate-200 p-5 shrink-0 flex flex-col gap-6 shadow-2xs">
+
+          {/* ATS Job Requisitions Sidebar */}
+          <div>
+            <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-3 font-mono">Active Requisitions</h3>
+            <div className="flex flex-col gap-1.5">
+              <button
+                onClick={() => setSelectedJobId('all')}
+                className={`p-2.5 rounded-xl border transition-all text-left flex items-center justify-between w-full ${selectedJobId === 'all'
+                  ? 'bg-slate-900 border-slate-900 text-white shadow-md'
+                  : 'bg-slate-50 border-transparent hover:bg-slate-100 text-slate-700'
+                  }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Briefcase className={`h-3.5 w-3.5 ${selectedJobId === 'all' ? 'text-white' : 'text-slate-500'}`} />
+                  <span className={`font-bold text-[11px] tracking-tight ${selectedJobId === 'all' ? 'text-white' : 'text-slate-700'}`}>All Open Roles</span>
+                </div>
+                <span className={`text-[10px] font-bold ${selectedJobId === 'all' ? 'text-slate-300' : 'text-slate-400'}`}>
+                  {allApplicants.length}
+                </span>
+              </button>
+              {CAREEROS_JOBS.map(job => {
+                const isSelected = selectedJobId === job.id;
+                const count = allApplicants.filter(a => a.jobId === job.id).length;
+                return (
+                  <button
+                    key={job.id}
+                    onClick={() => setSelectedJobId(job.id)}
+                    className={`p-2.5 rounded-xl border transition-all text-left flex items-center justify-between w-full ${isSelected
+                      ? 'bg-blue-50 border-blue-200 shadow-sm'
+                      : 'bg-white border-transparent hover:bg-slate-50'
+                      }`}
+                  >
+                    <div className="flex flex-col gap-0.5 truncate pr-2">
+                      <span className={`font-bold text-[11px] leading-tight truncate ${isSelected ? 'text-blue-900' : 'text-slate-700'}`}>
+                        {job.role}
+                      </span>
+                      <span className={`text-[9px] font-bold uppercase tracking-wider ${isSelected ? 'text-blue-500' : 'text-slate-400'}`}>
+                        {job.type}
+                      </span>
+                    </div>
+                    <span className={`text-[10px] font-bold shrink-0 ${isSelected ? 'text-blue-600 bg-blue-100/50 px-1.5 py-0.5 rounded' : 'text-slate-400'}`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="h-px bg-slate-100 w-full" />
 
           {/* Candidate Search */}
           <div>
@@ -803,6 +995,44 @@ export default function EmployerDashboard() {
               />
               <span>Top 50 QS University</span>
             </label>
+            <label className="flex items-center gap-2.5 text-[11px] font-semibold text-slate-600 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={requireDegreeAlignment}
+                onChange={(e) => setRequireDegreeAlignment(e.target.checked)}
+                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5 cursor-pointer"
+              />
+              <span>Degree Field Aligned</span>
+            </label>
+            <label className="flex items-center gap-2.5 text-[11px] font-semibold text-slate-600 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={requireFullMatch}
+                onChange={(e) => setRequireFullMatch(e.target.checked)}
+                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5 cursor-pointer"
+              />
+              <span>100% Skill Match</span>
+            </label>
+          </div>
+
+          {/* Experience Level Filter */}
+          <div className="border-t border-slate-100 pt-4">
+            <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2 font-mono">Experience Level</h3>
+            <div className="flex bg-slate-50 border border-slate-200 rounded-lg p-0.5">
+              {[
+                { key: 'all', label: 'Any' },
+                { key: 'fresh', label: 'Fresh Grad' },
+                { key: 'experienced', label: 'Experienced' }
+              ].map(lvl => (
+                <button
+                  key={lvl.key}
+                  onClick={() => setExperienceLevel(lvl.key as any)}
+                  className={`flex-1 py-1.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${experienceLevel === lvl.key ? 'bg-white shadow-2xs text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                  {lvl.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Match Score Slider */}
@@ -822,7 +1052,7 @@ export default function EmployerDashboard() {
           </div>
 
           {/* Dynamic extracted focus keyword filters */}
-          {selectedKeywords.length > 0 && (
+          {(selectedKeywords.length > 0 || aiResumeKeywords.length > 0) && (
             <div className="border-t border-slate-100 pt-4">
               <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2 font-mono flex items-center gap-1">
                 <Sparkles className="h-3 w-3 text-blue-500" /> Active AI Keywords
@@ -837,12 +1067,21 @@ export default function EmployerDashboard() {
                     {kw} <X className="h-2.5 w-2.5" />
                   </button>
                 ))}
+                {aiResumeKeywords.map((kw) => (
+                  <button
+                    key={kw}
+                    onClick={() => setAiResumeKeywords(prev => prev.filter(k => k !== kw))}
+                    className="text-[9px] px-2 py-1 rounded-lg border font-bold bg-purple-550 border-purple-550 text-white shadow-2xs flex items-center gap-1 cursor-pointer"
+                  >
+                    {kw} <X className="h-2.5 w-2.5" />
+                  </button>
+                ))}
               </div>
             </div>
           )}
 
           {/* Reset Filters */}
-          {(candidateSearch || minMatchScore > 0 || phaseFilter !== 'all' || requireTopUniversity || minCgpa > 0 || pastPosition || selectedKeywords.length > 0) && (
+          {(candidateSearch || minMatchScore > 0 || phaseFilter !== 'all' || requireTopUniversity || minCgpa > 0 || pastPosition || selectedKeywords.length > 0 || aiResumeKeywords.length > 0 || requireDegreeAlignment || requireFullMatch || experienceLevel !== 'all') && (
             <button
               onClick={clearAiSearch}
               className="w-full mt-1 py-1.5 border border-dashed border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-[10px] font-bold text-slate-500 hover:text-slate-800 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1"
@@ -855,6 +1094,30 @@ export default function EmployerDashboard() {
 
         {/* Right Section: Compact Applicants Registry (Tabular HR Inbox) */}
         <main className="flex-1 min-w-0 w-full bg-white border border-slate-200 rounded-2xl shadow-2xs p-5 flex flex-col gap-3">
+
+          {/* Job Type Sub-Tabs */}
+          <div className="flex border-b border-slate-200 overflow-x-auto scrollbar-none mb-4 gap-6">
+            {[
+              { key: 'all', label: 'All Types' },
+              { key: 'Full-time', label: 'Full-time' },
+              { key: 'Part-time', label: 'Part-time' },
+              { key: 'Internship', label: 'Internship' }
+            ].map(tab => {
+              const active = jobTypeFilter === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setJobTypeFilter(tab.key as any)}
+                  className={`pb-2.5 relative flex items-center gap-1.5 cursor-pointer whitespace-nowrap text-[11px] font-bold tracking-wide transition-all border-b-2 -mb-[2px] ${active
+                    ? 'text-blue-600 border-blue-600 font-extrabold'
+                    : 'text-slate-400 border-transparent hover:text-slate-700'
+                    }`}
+                >
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
 
           {/* Recruitment Phase Sub-Tabs */}
           <div className="flex border-b border-slate-200 overflow-x-auto scrollbar-none mb-2 gap-6">
@@ -871,14 +1134,14 @@ export default function EmployerDashboard() {
                   key={tab.key}
                   onClick={() => setPhaseFilter(tab.key)}
                   className={`pb-2.5 relative flex items-center gap-1.5 cursor-pointer whitespace-nowrap text-[11px] font-bold tracking-wide transition-all border-b-2 -mb-[2px] ${active
-                      ? 'text-slate-900 border-slate-900 font-extrabold'
-                      : 'text-slate-400 border-transparent hover:text-slate-700'
+                    ? 'text-slate-900 border-slate-900 font-extrabold'
+                    : 'text-slate-400 border-transparent hover:text-slate-700'
                     }`}
                 >
                   <span>{tab.label}</span>
                   <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold ${active
-                      ? 'bg-slate-900 text-white'
-                      : 'bg-slate-100 text-slate-500'
+                    ? 'bg-slate-900 text-white'
+                    : 'bg-slate-100 text-slate-500'
                     }`}>
                     {tab.count}
                   </span>
@@ -899,9 +1162,7 @@ export default function EmployerDashboard() {
                 <tr className="border-b border-slate-150 text-slate-400 font-bold">
                   <th className="py-2.5 px-3">Applicant Name</th>
                   <th className="py-2.5 px-3">Target Role</th>
-                  <th className="py-2.5 px-3">Applied Company</th>
-                  <th className="py-2.5 px-3">University</th>
-                  <th className="py-2.5 px-3">CGPA</th>
+                  <th className="py-2.5 px-3">Last Institution</th>
                   <th className="py-2.5 px-3">Relevance</th>
                   <th className="py-2.5 px-3">Status</th>
                   <th className="py-2.5 px-3 text-right">Actions</th>
@@ -938,7 +1199,7 @@ export default function EmployerDashboard() {
                       >
                         <td className="py-3 px-3">
                           <div className="flex items-center gap-2.5">
-                            <div className="h-7.5 w-7.5 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] font-black text-slate-600 uppercase shrink-0">
+                            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-300 flex items-center justify-center text-[11px] font-black text-slate-700 uppercase shrink-0 shadow-sm">
                               {initials}
                             </div>
                             <div className="min-w-0">
@@ -946,10 +1207,13 @@ export default function EmployerDashboard() {
                             </div>
                           </div>
                         </td>
-                        <td className="py-3 px-3 text-slate-600 font-semibold truncate">{app.roleApplied}</td>
-                        <td className="py-3 px-3 text-slate-500 font-medium truncate">{app.company}</td>
-                        <td className="py-3 px-3 text-slate-500 font-medium truncate max-w-[150px]">{app.university}</td>
-                        <td className="py-3 px-3 text-slate-600 font-bold font-mono">{app.academicScore.toFixed(2)}</td>
+                        <td className="py-3 px-3">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-slate-700 font-bold truncate">{app.roleApplied}</span>
+                            <span className="text-[9.5px] font-semibold text-slate-400 uppercase tracking-wider">{app.jobType}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-3 text-slate-500 font-medium truncate max-w-[150px]">{app.lastInstitution}</td>
                         <td className="py-3 px-3">
                           <span className={`px-2 py-0.5 border rounded-full text-[9.5px] font-black font-mono ${scoreBadgeClass} flex items-center gap-1 w-fit`}>
                             {aiFiltersActive && <Sparkles className="h-2.5 w-2.5 text-blue-500" />}
@@ -968,8 +1232,8 @@ export default function EmployerDashboard() {
                               setSelectedApplicantId(app.id);
                             }}
                             className={`px-3 py-1 text-[10px] font-bold rounded-lg border transition-all cursor-pointer ${isSelected
-                                ? 'bg-blue-600 border-blue-600 text-white shadow-2xs'
-                                : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-800'
+                              ? 'bg-blue-600 border-blue-600 text-white shadow-2xs'
+                              : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-800'
                               }`}
                           >
                             Inspect Profile
@@ -1051,8 +1315,8 @@ export default function EmployerDashboard() {
                       key={tab.key}
                       onClick={() => setActiveDrawerTab(tab.key as any)}
                       className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[9.5px] font-bold border transition-colors cursor-pointer ${activeDrawerTab === tab.key
-                          ? 'bg-slate-900 border-slate-900 text-white shadow-2xs'
-                          : 'bg-white border-slate-200 text-slate-550 hover:bg-slate-50'
+                        ? 'bg-slate-900 border-slate-900 text-white shadow-2xs'
+                        : 'bg-white border-slate-200 text-slate-550 hover:bg-slate-50'
                         }`}
                     >
                       {tab.icon}
@@ -1205,6 +1469,18 @@ export default function EmployerDashboard() {
                             </p>
                           </div>
 
+                          {/* Comprehensive Resume Paragraph */}
+                          {selectedApplicant.resumeText && (
+                            <div className="mb-4 bg-white p-3 rounded-xl shadow-xs border border-slate-200">
+                              <h5 className="text-[9px] font-sans font-bold uppercase tracking-wider text-blue-550 mb-1.5 flex items-center gap-1.5 border-b border-blue-100 pb-1.5">
+                                <FileText className="h-3.5 w-3.5 text-blue-500" /> Comprehensive Summary
+                              </h5>
+                              <p className="font-sans text-[11px] text-slate-700 leading-relaxed font-medium">
+                                {selectedApplicant.resumeText}
+                              </p>
+                            </div>
+                          )}
+
                           {/* Summary */}
                           <div className="mb-3">
                             <h5 className="text-[9px] font-sans font-bold uppercase tracking-wider text-slate-455 mb-1 border-b border-slate-200/80">Academic Credential Summary</h5>
@@ -1274,8 +1550,8 @@ export default function EmployerDashboard() {
                         key={phase.key}
                         onClick={() => handleStatusUpdate(selectedApplicant.id, phase.key as any)}
                         className={`py-2 text-[10px] font-black rounded-xl border text-center transition-all cursor-pointer ${isActive
-                            ? phase.colorClass
-                            : 'bg-white border-slate-200 text-slate-550 hover:bg-slate-100'
+                          ? phase.colorClass
+                          : 'bg-white border-slate-200 text-slate-550 hover:bg-slate-100'
                           }`}
                       >
                         {phase.label}

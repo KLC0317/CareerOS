@@ -282,24 +282,7 @@ export default function ProfileSettings() {
             />
           </div>
 
-          {/* Target Role Field */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-              <Briefcase className="h-3.5 w-3.5" /> Target Professional Role
-            </label>
-            <select
-              value={targetRole}
-              onChange={(e) => setTargetRole(e.target.value)}
-              className="w-full text-[11.5px] bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 outline-none focus:border-blue-500 transition-colors font-semibold cursor-pointer"
-            >
-              <option value="AI Architect">AI Architect</option>
-              <option value="Frontend Architect">Frontend Architect</option>
-              <option value="Senior Data Engineer">Senior Data Engineer</option>
-              <option value="Cloud Infrastructure Architect">Cloud Infrastructure Architect</option>
-              <option value="Technical Lead">Technical Lead</option>
-              <option value="Engineering Director">Engineering Director</option>
-            </select>
-          </div>
+
         </div>
 
         {/* Preferences / Toggles Section */}

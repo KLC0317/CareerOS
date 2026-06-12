@@ -75,10 +75,10 @@ function JobCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.25, delay: Math.min(index * 0.03, 0.3) }}
-      className={`bg-white rounded-xl border transition-all duration-200 overflow-hidden ${
+      className={`bg-white dark:bg-slate-800 rounded-xl border transition-all duration-200 overflow-hidden ${
         expanded
-          ? `${tier.border} shadow-sm`
-          : 'border-slate-200 hover:border-slate-300'
+          ? `${tier.border} shadow-sm dark:shadow-none`
+          : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
       }`}
     >
       {/* ── Compact card main row ── */}
@@ -86,31 +86,31 @@ function JobCard({
         
         {/* Role & Company meta */}
         <div className="flex items-center gap-3 min-w-0">
-          <div className="h-9 w-9 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
+          <div className="h-9 w-9 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 shrink-0">
             <Building2 className="h-4.5 w-4.5 text-slate-400" />
           </div>
           <div className="min-w-0">
-            <h3 className="text-[13px] font-bold text-slate-900 leading-snug truncate">{job.role}</h3>
+            <h3 className="text-[13px] font-bold text-slate-900 dark:text-slate-100 leading-snug truncate">{job.role}</h3>
             <div className="flex flex-wrap items-center gap-1.5 text-[10.5px] text-slate-500 mt-0.5">
-              <span className="font-semibold text-slate-650">{job.company}</span>
+              <span className="font-semibold text-slate-650 dark:text-slate-300">{job.company}</span>
               <span className="text-slate-350">•</span>
               <span className="flex items-center gap-0.5"><MapPin className="h-3 w-3 shrink-0" /> {job.location}</span>
               {job.jobType && (
                 <>
                   <span className="text-slate-350">•</span>
-                  <span className="bg-slate-100/80 text-slate-600 px-1.5 py-0.5 rounded text-[9.5px] font-semibold">{job.jobType}</span>
+                  <span className="bg-slate-100/80 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded text-[9.5px] font-semibold">{job.jobType}</span>
                 </>
               )}
               {job.workMode && (
                 <>
                   <span className="text-slate-355">•</span>
-                  <span className="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded text-[9.5px] font-semibold">{job.workMode}</span>
+                  <span className="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded text-[9.5px] font-semibold">{job.workMode}</span>
                 </>
               )}
               {job.experienceLevel && (
                 <>
                   <span className="text-slate-355">•</span>
-                  <span className="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded text-[9.5px] font-semibold">{job.experienceLevel}</span>
+                  <span className="bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 rounded text-[9.5px] font-semibold">{job.experienceLevel}</span>
                 </>
               )}
             </div>
@@ -121,7 +121,7 @@ function JobCard({
         <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
           {/* Salary & Match Pill */}
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono font-semibold text-slate-600 bg-slate-50 border border-slate-200/60 px-2 py-0.5 rounded-md">
+            <span className="text-[10px] font-mono font-semibold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 px-2 py-0.5 rounded-md">
               {job.salary}
             </span>
             <div className={`flex items-center gap-1.5 px-2.5 py-0.5 border rounded-full ${tier.bg} ${tier.border}`}>
@@ -463,11 +463,11 @@ export default function JobBoard() {
 
         {/* Simple Stats badges */}
         <div className="flex items-center gap-2.5 shrink-0">
-          <div className="text-center px-4.5 py-2 bg-white border border-slate-200 rounded-xl shadow-xs">
-            <div className="text-base font-black text-slate-900">{totalJobs}</div>
+          <div className="text-center px-4.5 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xs dark:shadow-none">
+            <div className="text-base font-black text-slate-900 dark:text-slate-100">{totalJobs}</div>
             <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Total Positions</div>
           </div>
-          <div className="text-center px-4.5 py-2 bg-emerald-50 border border-emerald-200 rounded-xl shadow-xs">
+          <div className="text-center px-4.5 py-2 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800/50 rounded-xl shadow-xs dark:shadow-none">
             <div className="text-base font-black text-emerald-700">{strongMatches}</div>
             <div className="text-[9px] font-bold uppercase tracking-wider text-emerald-600">Strong Matches</div>
           </div>
@@ -478,7 +478,7 @@ export default function JobBoard() {
       <div className="flex flex-col lg:flex-row gap-6 items-start">
         
         {/* Left Side: Filter Panel Sidebar */}
-        <aside className="w-full lg:w-72 bg-white rounded-2xl border border-slate-200 shadow-xs p-5 shrink-0 flex flex-col gap-5">
+        <aside className="w-full lg:w-72 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs dark:shadow-none p-5 shrink-0 flex flex-col gap-5">
           
           {/* Keyword Search */}
           <div>
@@ -517,8 +517,8 @@ export default function JobBoard() {
                   onClick={() => setFilterTier(item.key)}
                   className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
                     filterTier === item.key
-                      ? 'bg-slate-900 text-white shadow-xs'
-                      : 'bg-slate-50 border border-slate-200/50 text-slate-600 hover:bg-slate-100 hover:text-slate-800'
+                      ? 'bg-slate-900 dark:bg-blue-600 text-white shadow-xs'
+                      : 'bg-slate-50 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-slate-200'
                   }`}
                 >
                   <span>{item.label}</span>
@@ -736,9 +736,9 @@ export default function JobBoard() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="py-14 text-center bg-white border border-slate-200 rounded-2xl"
+                  className="py-14 text-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl"
                 >
-                  <div className="h-11 w-11 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-slate-100">
+                  <div className="h-11 w-11 bg-slate-50 dark:bg-slate-900 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-slate-100 dark:border-slate-800">
                     <Briefcase className="h-5 w-5 text-slate-400" />
                   </div>
                   <p className="text-xs font-bold text-slate-700">No positions matched your filters</p>

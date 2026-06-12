@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Cpu, Briefcase, Users, LayoutDashboard,
   LogOut, Check, ArrowRight, Lock, Mail, User,
-  AlertCircle, Settings, Clock
+  AlertCircle, Settings, Clock, X
 } from 'lucide-react';
 
 export default function Page() {
@@ -25,10 +25,13 @@ export default function Page() {
     authLoading,
     setAuthError,
     login,
+    loginDemo,
     register,
     forgotPassword,
     resetPassword,
-    signOut
+    signOut,
+    toast,
+    setToast
   } = useCareerEngine();
 
   // Prevents hydration mismatch: server renders stable skeleton, client updates after mount
@@ -71,6 +74,15 @@ export default function Page() {
       return;
     }
     const result = await login(email.trim(), password.trim());
+    if (result.success) {
+      setEmail('');
+      setPassword('');
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    setSuccessMessage(null);
+    const result = await loginDemo();
     if (result.success) {
       setEmail('');
       setPassword('');
@@ -140,20 +152,27 @@ export default function Page() {
       <div className="absolute inset-0 bg-grid-pattern pointer-events-none opacity-50"></div>
 
       {/* Global Header */}
-      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between relative">
+      <header className="sticky top-0 z-50 border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between relative">
 
           {/* Logo Brand — Left Column */}
-          <div className="w-1/4 min-w-[120px] flex items-center justify-start flex-shrink-0">
-            <div className="flex items-center gap-2.5">
-              <img
-                src="/careeros.png"
-                alt="Career OS Logo"
-                className="h-8 w-8 rounded-lg object-contain"
-              />
+          <div className="flex-1 min-w-[120px] flex items-center justify-start flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="relative h-16 w-16 flex-shrink-0">
+                <img
+                  src="/careeros.png"
+                  alt="Career OS Logo"
+                  className="absolute inset-0 h-full w-full object-contain rounded-lg dark:hidden"
+                />
+                <img
+                  src="/careeros_dark.png"
+                  alt="Career OS Logo"
+                  className="absolute inset-0 h-full w-full object-contain rounded-lg hidden dark:block"
+                />
+              </div>
 
               <div className="flex flex-col">
-                <span className="text-sm font-black text-slate-900 uppercase tracking-wider leading-none">
+                <span className="text-base font-black text-slate-900 dark:text-slate-100 uppercase tracking-wider leading-none">
                   Career OS
                 </span>
                 <span className="text-[9px] text-teal-600 font-bold uppercase tracking-wider font-mono mt-0.5 hidden sm:inline">
@@ -164,79 +183,85 @@ export default function Page() {
           </div>
 
           {/* Nav Switcher — Center Column */}
-          <div className="flex-1 flex justify-center items-center">
+          <div className="absolute left-1/2 -translate-x-1/2 flex justify-center items-center shrink-0">
             {mounted && userProfile.registered && userProfile.targetRole !== 'PENDING_ONBOARDING' && (
-              <nav className="flex items-center bg-slate-100 p-1 border border-slate-200/60 rounded-xl relative gap-1">
+              <nav className="flex items-center bg-slate-200/50 dark:bg-slate-800/50 backdrop-blur-xl p-1.5 border border-white/60 dark:border-slate-700/60 rounded-2xl relative gap-1 shadow-inner ring-1 ring-slate-900/5 dark:ring-white/5">
 
                 <button
                   onClick={() => setActivePersona('candidate')}
-                  className={`relative flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-bold tracking-wide transition-all duration-205 cursor-pointer group ${activePersona === 'candidate' ? 'text-slate-900' : 'text-slate-500 hover:text-slate-800'
+                  className={`relative flex items-center gap-2.5 px-4 py-2 rounded-xl text-[11.5px] font-extrabold tracking-wide transition-all duration-300 cursor-pointer group overflow-hidden ${activePersona === 'candidate' ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white/40 dark:hover:bg-slate-700/40'
                     }`}
                 >
                   {activePersona === 'candidate' && (
                     <motion.div
                       layoutId="activeNavTab"
-                      className="absolute inset-0 bg-white border border-slate-200/50 shadow-xs rounded-lg -z-10"
-                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      className="absolute inset-0 bg-white dark:bg-slate-700 shadow-[0_2px_10px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.3)] rounded-xl -z-10 border border-slate-100 dark:border-slate-600"
+                      transition={{ type: 'spring', stiffness: 400, damping: 35 }}
                     />
                   )}
-                  <LayoutDashboard className="h-3.5 w-3.5 shrink-0" />
-                  <span className="hidden md:inline">Candidate</span>
-                  <span className="hidden lg:inline"> Workspace</span>
+                  <LayoutDashboard className={`h-4 w-4 shrink-0 transition-colors ${activePersona === 'candidate' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-400'}`} />
+                  <span className="relative z-10 truncate">
+                    <span className="hidden md:inline">Candidate</span>
+                    <span className="hidden lg:inline"> Workspace</span>
+                  </span>
                 </button>
 
                 <button
                   onClick={() => setActivePersona('jobs')}
-                  className={`relative flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-bold tracking-wide transition-all duration-205 cursor-pointer group ${activePersona === 'jobs' ? 'text-slate-900' : 'text-slate-500 hover:text-slate-800'
+                  className={`relative flex items-center gap-2.5 px-4 py-2 rounded-xl text-[11.5px] font-extrabold tracking-wide transition-all duration-300 cursor-pointer group overflow-hidden ${activePersona === 'jobs' ? 'text-teal-700 dark:text-teal-300' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white/40 dark:hover:bg-slate-700/40'
                     }`}
                 >
                   {activePersona === 'jobs' && (
                     <motion.div
                       layoutId="activeNavTab"
-                      className="absolute inset-0 bg-white border border-slate-200/50 shadow-xs rounded-lg -z-10"
-                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      className="absolute inset-0 bg-white dark:bg-slate-700 shadow-[0_2px_10px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.3)] rounded-xl -z-10 border border-slate-100 dark:border-slate-600"
+                      transition={{ type: 'spring', stiffness: 400, damping: 35 }}
                     />
                   )}
-                  <Briefcase className="h-3.5 w-3.5 shrink-0" />
-                  <span className="hidden md:inline">Job Board</span>
+                  <Briefcase className={`h-4 w-4 shrink-0 transition-colors ${activePersona === 'jobs' ? 'text-teal-600 dark:text-teal-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-400'}`} />
+                  <span className="hidden md:inline relative z-10 truncate">Job Board</span>
                 </button>
 
                 <button
                   onClick={() => setActivePersona('employer')}
-                  className={`relative flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-bold tracking-wide transition-all duration-205 cursor-pointer group ${activePersona === 'employer' ? 'text-slate-900' : 'text-slate-500 hover:text-slate-800'
+                  className={`relative flex items-center gap-2.5 px-4 py-2 rounded-xl text-[11.5px] font-extrabold tracking-wide transition-all duration-300 cursor-pointer group overflow-hidden ${activePersona === 'employer' ? 'text-rose-700 dark:text-rose-300' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white/40 dark:hover:bg-slate-700/40'
                     }`}
                 >
                   {activePersona === 'employer' && (
                     <motion.div
                       layoutId="activeNavTab"
-                      className="absolute inset-0 bg-white border border-slate-200/50 shadow-xs rounded-lg -z-10"
-                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      className="absolute inset-0 bg-white dark:bg-slate-700 shadow-[0_2px_10px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.3)] rounded-xl -z-10 border border-slate-100 dark:border-slate-600"
+                      transition={{ type: 'spring', stiffness: 400, damping: 35 }}
                     />
                   )}
-                  <Users className="h-3.5 w-3.5 shrink-0" />
-                  <span className="hidden md:inline">Employer</span>
-                  <span className="hidden lg:inline"> Portal</span>
+                  <Users className={`h-4 w-4 shrink-0 transition-colors ${activePersona === 'employer' ? 'text-rose-600 dark:text-rose-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-400'}`} />
+                  <span className="relative z-10 truncate">
+                    <span className="hidden md:inline">Employer</span>
+                    <span className="hidden lg:inline"> Portal</span>
+                  </span>
                 </button>
 
               </nav>
             )}
           </div>
 
-          <motion.span
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3, duration: 0.4, ease: 'easeOut' }}
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-slate-200/40 bg-white/70 backdrop-blur-md shadow-sm mr-2"
-          >
-            {/* Small dot for extra visual flair */}
-            <span className="h-1.5 w-1.5 rounded-full bg-gradient-to-r from-cyan-400 to-purple-500 animate-pulse" />
-            <span className="glow-dev-badge text-[10px] font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-500">
-              Dev: Kian Lok
-            </span>
-          </motion.span>
-
           {/* Profile — Right Column (Last Login only appears on login page) */}
-          <div className="flex items-center gap-3 justify-end flex-shrink-0">
+          <div className="flex-1 flex items-center gap-3 justify-end flex-shrink-0">
+            {mounted && !userProfile.registered && (
+              <motion.span
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3, duration: 0.4, ease: 'easeOut' }}
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-slate-200/40 bg-white/70 backdrop-blur-md shadow-sm mr-2"
+              >
+                {/* Small dot for extra visual flair */}
+                <span className="h-1.5 w-1.5 rounded-full bg-gradient-to-r from-cyan-400 to-purple-500 animate-pulse" />
+                <span className="glow-dev-badge text-[10px] font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-500">
+                  Dev: Kian Lok
+                </span>
+              </motion.span>
+            )}
+
             {userProfile.registered ? (
               <div className="relative">
                 {/* Profile trigger button */}
@@ -503,11 +528,16 @@ export default function Page() {
 
                   {/* Header Title */}
                   <div className="text-center mb-5">
-                    <div className="h-20 w-20 rounded-2xl bg-gradient-to-r from-blue-600 to-teal-500 flex items-center justify-center mx-auto mb-3 shadow-lg">
+                    <div className="relative h-40 w-40 mx-auto mb-3">
                       <img
                         src="/careeros.png"
-                        alt="Header Logo"
-                        className="h-20 w-20 rounded-2xl object-contain"
+                        alt="Header Logo Light"
+                        className="absolute inset-0 h-full w-full object-contain dark:hidden"
+                      />
+                      <img
+                        src="/careeros_dark.png"
+                        alt="Header Logo Dark"
+                        className="absolute inset-0 h-full w-full object-contain hidden dark:block"
                       />
                     </div>
 
@@ -635,13 +665,21 @@ export default function Page() {
                         </div>
                       </div>
 
-                      <div className="mt-2 w-full">
+                      <div className="mt-2 w-full flex flex-col gap-2">
                         <Button
                           type="submit"
                           disabled={authLoading}
                           className="w-full py-2.5 font-bold"
                         >
                           {authLoading ? 'Signing In...' : 'Sign In'} <ArrowRight className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          type="button"
+                          onClick={handleDemoLogin}
+                          disabled={authLoading}
+                          className="w-full py-2.5 font-bold bg-gradient-to-r from-teal-500 to-blue-600 hover:from-teal-400 hover:to-blue-500 text-white shadow-md border-0"
+                        >
+                          Try Demo Account <Cpu className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </form>
@@ -791,6 +829,32 @@ export default function Page() {
                     </form>
                   )}
 
+                  {/* Google OAuth Login option - rendered for Sign In / Sign Up */}
+                  {(authView === 'signin' || authView === 'signup') && (
+                    <>
+                      <div className="mt-5 flex items-center justify-between gap-2">
+                        <span className="h-px bg-slate-200/85 flex-1"></span>
+                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider font-mono">Or continue with</span>
+                        <span className="h-px bg-slate-200/85 flex-1"></span>
+                      </div>
+
+                      <div className="mt-4 w-full">
+                        <a
+                          href="/api/auth/google"
+                          className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-350 text-slate-700 font-bold text-xs rounded-xl shadow-xs transition-all duration-200 cursor-pointer flex items-center justify-center gap-2.5"
+                        >
+                          <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.04,3.1v2.58h3.3c1.93,-1.78 3.04,-4.4 3.04,-7.38C21.68,11.77 21.56,11.37 21.35,11.1z" fill="#4285F4" />
+                            <path d="M12,20.88c2.4,0 4.4,-0.8 5.88,-2.18l-3.3,-2.58c-0.9,0.6 -2.07,0.98 -3.48,0.98 -2.68,0 -4.95,-1.8 -5.76,-4.24H2.03v2.66C3.5,17.61 7.46,20.88 12,20.88z" fill="#34A853" />
+                            <path d="M6.24,12.86C6.04,12.26 5.93,11.63 5.93,11c0,-0.63 0.11,-1.26 0.31,-1.86V6.48H2.03C1.36,7.83 1,9.37 1,11c0,1.63 0.36,3.17 1.03,4.52L6.24,12.86z" fill="#FBBC05" />
+                            <path d="M12,5.13c1.3,0 2.47,0.45 3.39,1.33l2.54,-2.54C16.39,2.44 14.39,1.13 12,1.13c-4.54,0 -8.5,3.27 -9.97,7.39l4.21,3.24C6.24,7.52 9.32,5.13 12,5.13z" fill="#EA4335" />
+                          </svg>
+                          Google Account
+                        </a>
+                      </div>
+                    </>
+                  )}
+
                   {/* View toggle link buttons */}
                   <div className="mt-6 border-t border-slate-100 pt-4 text-center text-xs">
                     {(authView === 'forgot' || authView === 'reset') && (
@@ -812,12 +876,19 @@ export default function Page() {
       {/* Footer */}
       <footer className="border-t border-slate-200/70 bg-white/40 backdrop-blur-sm py-5 mt-12 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <img
-              src="/careeros.png"
-              alt="Career OS Logo"
-              className="h-5 w-5 rounded-md object-contain"
-            />
+          <div className="flex items-center gap-2.5">
+            <div className="relative h-14 w-14 flex-shrink-0">
+              <img
+                src="/careeros.png"
+                alt="Career OS Logo Light"
+                className="absolute inset-0 h-full w-full object-contain dark:hidden"
+              />
+              <img
+                src="/careeros_dark.png"
+                alt="Career OS Logo Dark"
+                className="absolute inset-0 h-full w-full object-contain hidden dark:block"
+              />
+            </div>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">Career OS</span>
           </div>
           <p className="text-[10px] text-slate-400 font-mono text-center">
@@ -828,6 +899,49 @@ export default function Page() {
           </p>
         </div>
       </footer>
+
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {toast && toast.show && (
+          <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className="fixed bottom-6 right-6 z-[9999] flex items-center gap-3.5 pl-4 pr-3 py-3 rounded-2xl bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-500 text-white shadow-2xl shadow-teal-500/25 border border-teal-400/30 max-w-sm cursor-pointer select-none group"
+            onClick={() => {
+              if (toast.onClick) {
+                toast.onClick();
+              }
+              setToast(null);
+            }}
+          >
+            <div className="h-8 w-8 rounded-xl bg-white p-1 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200 shadow-xs">
+              <img
+                src="/careeros.png"
+                alt="Career OS Logo"
+                className="h-full w-full object-contain"
+              />
+            </div>
+
+            <div className="flex-1 min-w-0 pr-2">
+              <p className="text-[12.5px] font-medium leading-snug">
+                Smart Move! See your job applications <span className="underline font-bold tracking-wide decoration-white/60 hover:decoration-white transition-all">here</span>
+              </p>
+            </div>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setToast(null);
+              }}
+              className="p-1 rounded-lg hover:bg-white/10 text-white/80 hover:text-white transition-colors cursor-pointer"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <style jsx>{`
         @keyframes glow-pulse {
           0%, 100% { filter: drop-shadow(0 0 3px rgba(34,211,238,0.4)) drop-shadow(0 0 6px rgba(99,102,241,0.3)); }

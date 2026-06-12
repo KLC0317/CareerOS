@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Career OS | Next-Gen Trajectory Engine",
   description: "A professional, next-generation job search and career trajectory platform featuring custom Step Semi-Markov modeling and dynamic skill graph traversal.",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({

@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import { CareerNode, JobPosting, verifyPrerequisites, SKILL_DAG, PeerProfile, CohortAnalysisResult, analyzeCohortProgress } from '../lib/careerEngine';
 import { INITIAL_CAREER_NODES, MOCK_JOBS, INITIAL_EMPLOYEES, EmployeeRecord, GENERATED_PEERS, GENERATED_JOBS } from '../lib/mockData';
+import roadmapData from '../public/roadmap.json';
 
 export type PersonaType = 'candidate' | 'employer' | 'jobs' | 'settings';
 
@@ -38,6 +39,9 @@ interface CareerEngineContextType {
   addNode: (node: Omit<CareerNode, 'id'>) => void;
   deleteNode: (id: string) => void;
   candidateSkills: string[]; // Dynamically aggregated
+  manuallyAcquiredSkills: string[];
+  markSkillAsAcquired: (skillName: string) => Promise<void>;
+  unmarkSkillAsAcquired: (skillName: string) => Promise<void>;
   jobs: JobPosting[];
   applications: JobApplication[]; // List of job applications
   applyToJob: (jobId: string, status?: JobApplication['status']) => Promise<void>;
@@ -55,6 +59,7 @@ interface CareerEngineContextType {
   authLoading: boolean;
   setAuthError: (err: string | null) => void;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  loginDemo: () => Promise<{ success: boolean; error?: string }>;
   register: (name: string, email: string, password: string, targetRole: string) => Promise<{ success: boolean; error?: string }>;
   forgotPassword: (email: string) => Promise<{ success: boolean; message?: string; token?: string }>;
   resetPassword: (token: string, newPassword: string) => Promise<{ success: boolean; message?: string }>;
@@ -91,6 +96,8 @@ interface CareerEngineContextType {
   setPhaseFilter: (phase: string) => void;
   selectedApplicantId: string | null;
   setSelectedApplicantId: (id: string | null) => void;
+  toast: { show: boolean; message: string; onClick?: () => void } | null;
+  setToast: React.Dispatch<React.SetStateAction<{ show: boolean; message: string; onClick?: () => void } | null>>;
 }
 
 const CareerEngineContext = createContext<CareerEngineContextType | undefined>(undefined);
@@ -136,6 +143,8 @@ export const CareerEngineProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
     return null;
   });
+
+  const [toast, setToast] = useState<{ show: boolean; message: string; onClick?: () => void } | null>(null);
 
   const setActivePersona = (persona: PersonaType) => {
     if (typeof window !== 'undefined' && activePersona !== 'settings') {
@@ -226,7 +235,18 @@ export const CareerEngineProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [profileVersions, setProfileVersions] = useState<any[]>([]);
 
   // Custom paths state
-  const [careerPaths, setCareerPaths] = useState<string[]>(['AI Architect', 'Frontend Architect', 'Engineering Director']);
+  const [careerPaths, setCareerPaths] = useState<string[]>(() => {
+    const defaultPaths = ['AI Architect', 'Frontend Architect', 'Engineering Director'];
+    try {
+      if (roadmapData && roadmapData.roadmaps) {
+        const roadmapTitles = roadmapData.roadmaps.map((r: any) => r.title);
+        return [...new Set([...defaultPaths, ...roadmapTitles])];
+      }
+    } catch (e) {
+      // ignore
+    }
+    return defaultPaths;
+  });
 
   const addCustomPath = (name: string, description: string, skills: string[]) => {
     SKILL_DAG[name] = {
@@ -337,6 +357,14 @@ export const CareerEngineProvider: React.FC<{ children: React.ReactNode }> = ({ 
     checkDbStatus();
   }, []);
 
+  useEffect(() => {
+    if (userProfile.email && dbStatus.online) {
+      fetchProfileVersions(userProfile.email);
+      fetchApplications(userProfile.email);
+      fetchManuallyAcquiredSkills(userProfile.email);
+    }
+  }, [dbStatus.online, userProfile.email]);
+
   // Save session state to localStorage when changes occur
   useEffect(() => {
     if (typeof window !== 'undefined' && userProfile.registered) {
@@ -390,7 +418,20 @@ export const CareerEngineProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, []);
 
-  // Dynamically compute candidate skills from all nodes
+  // State for manually acquired skills
+  const [manuallyAcquiredSkills, setManuallyAcquiredSkills] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('career_os_session_acquired_skills');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {}
+      }
+    }
+    return [];
+  });
+
+  // Dynamically compute candidate skills from all nodes + manually marked ones
   const candidateSkills = useMemo(() => {
     const skillNames = new Set<string>();
     candidateNodes.forEach((node) => {
@@ -398,8 +439,11 @@ export const CareerEngineProvider: React.FC<{ children: React.ReactNode }> = ({ 
         skillNames.add(skill.name);
       });
     });
+    manuallyAcquiredSkills.forEach((skill) => {
+      skillNames.add(skill);
+    });
     return Array.from(skillNames);
-  }, [candidateNodes]);
+  }, [candidateNodes, manuallyAcquiredSkills]);
 
   // Cohort analysis – recomputes when target role or skills change
   const cohortAnalysis = useMemo<CohortAnalysisResult | null>(() => {
@@ -537,6 +581,20 @@ export const CareerEngineProvider: React.FC<{ children: React.ReactNode }> = ({ 
       const filtered = prev.filter((a) => a.jobId !== jobId);
       return [...filtered, newApp];
     });
+
+    setToast({
+      show: true,
+      message: 'u have applied view it here',
+      onClick: () => {
+        setActivePersona('jobs');
+        setActiveStatusTab('applied');
+      }
+    });
+
+    // Auto-dismiss after 6 seconds
+    setTimeout(() => {
+      setToast((prev) => (prev && prev.message === 'u have applied view it here' ? null : prev));
+    }, 6000);
 
     if (userProfile.email && dbStatus.online) {
       try {
@@ -695,6 +753,56 @@ export const CareerEngineProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
       await fetchProfileVersions(data.user.email);
       await fetchApplications(data.user.email);
+      await fetchManuallyAcquiredSkills(data.user.email);
+      return { success: true };
+
+    } catch (err: any) {
+      setAuthError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const loginDemo = async () => {
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      const res = await fetch('/api/auth/demo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Demo initialization failed.');
+      }
+
+      setUserProfile({
+        name: data.user.name,
+        email: data.user.email,
+        targetRole: data.user.targetRole,
+        marketAnalysis: data.user.marketAnalysis,
+        registered: true,
+        pdfData: data.user.pdfData,
+        isPremium: data.user.isPremium || false,
+        profilePicture: data.user.profilePicture || null,
+        lastLogin: data.user.lastLogin
+      });
+      if (data.user.milestones && data.user.milestones.length > 0) {
+        setCandidateNodes(data.user.milestones);
+      } else {
+        setCandidateNodes([]);
+      }
+      if (data.user.targetRole !== 'PENDING_ONBOARDING') {
+        setSelectedSkillPath(data.user.targetRole);
+      } else {
+        setSelectedSkillPath('AI Architect');
+      }
+      await fetchProfileVersions(data.user.email);
+      await fetchApplications(data.user.email);
+      await fetchManuallyAcquiredSkills(data.user.email);
       return { success: true };
 
     } catch (err: any) {
@@ -830,6 +938,63 @@ export const CareerEngineProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
+  const fetchManuallyAcquiredSkills = async (email: string) => {
+    try {
+      const res = await fetch(`/api/profile/skills?email=${encodeURIComponent(email)}`);
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setManuallyAcquiredSkills(data.skills);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('career_os_session_acquired_skills', JSON.stringify(data.skills));
+        }
+      }
+    } catch (err) {
+      // ignore
+    }
+  };
+
+  const markSkillAsAcquired = async (skillName: string) => {
+    if (!manuallyAcquiredSkills.includes(skillName)) {
+      const updated = [...manuallyAcquiredSkills, skillName];
+      setManuallyAcquiredSkills(updated);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('career_os_session_acquired_skills', JSON.stringify(updated));
+      }
+
+      if (userProfile.email && dbStatus.online) {
+        try {
+          await fetch('/api/profile/skills', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: userProfile.email, skillName })
+          });
+        } catch (err) {
+          // ignore
+        }
+      }
+    }
+  };
+
+  const unmarkSkillAsAcquired = async (skillName: string) => {
+    const updated = manuallyAcquiredSkills.filter(s => s !== skillName);
+    setManuallyAcquiredSkills(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('career_os_session_acquired_skills', JSON.stringify(updated));
+    }
+
+    if (userProfile.email && dbStatus.online) {
+      try {
+        await fetch('/api/profile/skills', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: userProfile.email, skillName })
+        });
+      } catch (err) {
+        // ignore
+      }
+    }
+  };
+
   const uploadAndParseResume = async (file: File | null, textContent: string): Promise<{ success: boolean; data?: any; error?: string; code?: string }> => {
     setAuthLoading(true);
     setAuthError(null);
@@ -892,6 +1057,7 @@ export const CareerEngineProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setSelectedSkillPath(data.targetRole);
 
       await fetchProfileVersions(userProfile.email);
+      await fetchManuallyAcquiredSkills(userProfile.email);
       return { success: true };
     } catch (err: any) {
       setAuthError(err.message);
@@ -947,6 +1113,7 @@ export const CareerEngineProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
 
       await fetchProfileVersions(email);
+      await fetchManuallyAcquiredSkills(email);
       return { success: true, versionNumber: data.versionNumber };
     } catch (err: any) {
       setAuthError(err.message);
@@ -1005,14 +1172,15 @@ export const CareerEngineProvider: React.FC<{ children: React.ReactNode }> = ({ 
         marketAnalysis,
         pdfData,
         registered: true,
-        isPremium: data.user?.isPremium || false,
-        profilePicture: data.user?.profilePicture || null
+        isPremium: data.user?.isPremium || prev.isPremium || false,
+        profilePicture: data.user?.profilePicture || prev.profilePicture || null
       }));
       setCandidateNodes(milestones);
       setSelectedSkillPath(targetRole);
 
       await fetchProfileVersions(email);
       await fetchApplications(email);
+      await fetchManuallyAcquiredSkills(email);
       return { success: true };
     } catch (err: any) {
       setAuthError(err.message);
@@ -1027,6 +1195,7 @@ export const CareerEngineProvider: React.FC<{ children: React.ReactNode }> = ({ 
       localStorage.removeItem('career_os_session_profile');
       localStorage.removeItem('career_os_session_applications');
       localStorage.removeItem('career_os_session_nodes');
+      localStorage.removeItem('career_os_session_acquired_skills');
     }
     setUserProfile({
       name: '',
@@ -1040,6 +1209,7 @@ export const CareerEngineProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setSearchQuery('');
     setCandidateNodes(INITIAL_CAREER_NODES);
     setProfileVersions([]);
+    setManuallyAcquiredSkills([]);
     // Navigate to base URL to clear any ?tab= query params
     if (typeof window !== 'undefined') {
       window.location.replace('/');
@@ -1073,6 +1243,7 @@ export const CareerEngineProvider: React.FC<{ children: React.ReactNode }> = ({ 
         setSelectedSkillPath(data.user.targetRole !== 'PENDING_ONBOARDING' ? data.user.targetRole : 'AI Architect');
         await fetchProfileVersions(data.user.email);
         await fetchApplications(data.user.email);
+        await fetchManuallyAcquiredSkills(data.user.email);
         return { success: true };
       }
     } catch (e) {
@@ -1181,6 +1352,9 @@ export const CareerEngineProvider: React.FC<{ children: React.ReactNode }> = ({ 
         addNode,
         deleteNode,
         candidateSkills,
+        manuallyAcquiredSkills,
+        markSkillAsAcquired,
+        unmarkSkillAsAcquired,
         jobs: combinedJobs,
         applications,
         applyToJob,
@@ -1197,6 +1371,7 @@ export const CareerEngineProvider: React.FC<{ children: React.ReactNode }> = ({ 
         authLoading,
         setAuthError,
         login,
+        loginDemo,
         register,
         forgotPassword,
         resetPassword,
@@ -1227,7 +1402,9 @@ export const CareerEngineProvider: React.FC<{ children: React.ReactNode }> = ({ 
         phaseFilter,
         setPhaseFilter,
         selectedApplicantId,
-        setSelectedApplicantId
+        setSelectedApplicantId,
+        toast,
+        setToast
       }}
     >
       {children}
